@@ -18,7 +18,7 @@ const title={house:'01 / ЗАГАЛЬНИЙ ВИГЛЯД',first:'02 / ПЕРШИ
 const labelEntries=model.labels.map(l=>{const el=document.createElement('div');el.className=`label ${l.kind==='room'?'room-label':l.kind==='site'?'site-label':''}`;el.innerHTML=l.text;$('labels').append(el);return {...l,el};});
 function fly(pos,target){if(reducedMotion){camera.position.set(...pos);controls.target.set(...target);tween=null;return;}tween={from:camera.position.clone(),to:new T.Vector3(...pos),fromTarget:controls.target.clone(),toTarget:new T.Vector3(...target),start:performance.now()};}
 controls.addEventListener('start',()=>{tween=null;});
-function defaultCamera(){const mobile=innerWidth<700;if(current==='site')fly(mobile?[50,53,-67]:[32,35,-40],[-5,0,9]);else if(current==='first')fly(mobile?[-12,16,-15]:[-8,11,-10],[0,.4,0]);else if(current==='second')fly(mobile?[-12,18,-15]:[-8,13,-10],[0,3.0,0]);else fly(mobile?[-14,10,-18]:[-12,8.5,-15.5],[0,2.6,0]);}
+function defaultCamera(){const mobile=innerWidth<700;if(current==='site')fly(mobile?[50,53,-67]:[32,35,-40],[-5,0,9]);else if(current==='first')fly(mobile?[-15,18,19]:[-10,13,14],[0,.4,1.1]);else if(current==='second')fly(mobile?[-15,20,19]:[-10,15,14],[0,3.0,1.1]);else fly(mobile?[-24,10,15]:[-17,7,11],[0,2.6,1.05]);}
 function apply(){
  const floorMode=current==='first'||current==='second';
  model.groups.first.visible=current!=='second';model.groups.second.visible=current!=='first';model.groups.roof.visible=!floorMode&&$('roof').checked;
