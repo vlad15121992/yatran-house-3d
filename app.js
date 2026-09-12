@@ -23,6 +23,9 @@ function apply(){
  const floorMode=current==='first'||current==='second';
  model.groups.first.visible=current!=='second';model.groups.second.visible=current!=='first';model.groups.roof.visible=!floorMode&&$('roof').checked;
  model.groups.site.visible=current==='site';model.groups.base.visible=current!=='second';
+ model.groups.ceiling.visible=(current==='house'&&$('roof').checked)||(current==='second'&&$('ceiling').checked);
+ model.groups.gables.visible=model.groups.roof.visible||model.groups.ceiling.visible;
+ controls.minDistance=$('ceiling').checked?.3:4;controls.maxPolarAngle=$('ceiling').checked?Math.PI-.1:Math.PI/2-.01;
  model.clip.constant=$('cut').checked?(current==='second'?LEVEL+1.05:1.05):100;
  model.garageCeiling.visible=!floorMode&&!$('cut').checked;
  model.updateCaps(model.clip.constant,current);
@@ -36,11 +39,12 @@ function apply(){
  $('view-title').textContent=title[current];$('plan-content').innerHTML=planSVG(current);
  $('snapshot').disabled=plan;$('top').disabled=plan;
 }
-function setView(view){current=view;selected=null;$('room-info').hidden=true;$('cut').checked=view==='first'||view==='second';document.querySelectorAll('.view').forEach(b=>{b.classList.toggle('active',b.dataset.view===view);b.setAttribute('aria-pressed',String(b.dataset.view===view));});apply();defaultCamera();}
+function setView(view){current=view;selected=null;$('ceiling').checked=false;$('room-info').hidden=true;$('cut').checked=view==='first'||view==='second';document.querySelectorAll('.view').forEach(b=>{b.classList.toggle('active',b.dataset.view===view);b.setAttribute('aria-pressed',String(b.dataset.view===view));});apply();defaultCamera();}
 function focusRoom(id){const r=rooms.find(r=>r.id===id);if(current!==(r.floor===1?'first':'second'))setView(r.floor===1?'first':'second');selected=id;const y=r.floor===1?.2:LEVEL+.2;fly([W/2-r.x-5,y+8,r.z-D/2-7],[W/2-r.x,y,r.z-D/2]);$('room-info').hidden=false;$('room-info').innerHTML=`<b>${r.id} · ${r.name} · ${r.area} м²</b>${r.size}<br><small>Висота за планом ${r.h.toFixed(2).replace('.',',')} м · без інтер’єру</small>`;}
 document.querySelectorAll('.view').forEach(b=>b.addEventListener('click',()=>setView(b.dataset.view)));
 ['roof','dimensions','cut','spin'].forEach(id=>$(id).addEventListener('change',()=>{if(id==='cut'&&$('cut').checked&&current==='house'){setView('first');return;}apply();}));
-$('reset').addEventListener('click',()=>{selected=null;$('room-info').hidden=true;$('spin').checked=false;apply();defaultCamera();});
+$('ceiling').addEventListener('change',()=>{const enabled=$('ceiling').checked;if(enabled){if(current!=='second')setView('second');$('ceiling').checked=true;$('cut').checked=false;apply();fly([-2.02,4.0,2.18],[-2.02,4.5,-1.65]);}else{apply();defaultCamera();}});
+$('reset').addEventListener('click',()=>{selected=null;$('room-info').hidden=true;$('spin').checked=false;$('ceiling').checked=false;$('cut').checked=current==='first'||current==='second';apply();defaultCamera();});
 $('top').addEventListener('click',()=>{const site=current==='site',y=current==='second'?LEVEL:0;fly(site?[-5,49,9.01]:[0,y+22,-.001],site?[-5,0,9]:[0,y,0]);});
 $('plan').addEventListener('click',()=>{plan=!plan;if(plan&&current==='house')setView('first');$('plan-view').hidden=!plan;$('viewport').classList.toggle('plan-mode',plan);$('plan').setAttribute('aria-pressed',String(plan));$('plan').textContent=plan?'3D огляд':'План 2D';$('hint').textContent=plan?'Натисніть «3D огляд», щоб повернутися до моделі':innerWidth<700?'Один палець — обертання · Два — масштаб':'Перетягніть, щоб обертати · Коліщатко — масштаб';apply();});
 $('details').addEventListener('click',()=>$('data-dialog').showModal());$('close-dialog').addEventListener('click',()=>$('data-dialog').close());$('data-dialog').addEventListener('click',e=>{if(e.target===$('data-dialog')){const r=e.target.getBoundingClientRect();if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom)e.target.close();}});

@@ -1,17 +1,17 @@
 import * as T from 'three';
-import {masonry,masonryUV} from './masonry.js';
+import {masonry,masonryUV,pine} from './masonry.js';
 
 // Metres. Front edge z=0; rear edge z=5.45; house centred in world space.
 export const W=6.90,D=5.45,LEVEL=2.60,EXT=2.30;
 export const rooms=[
  {id:1,floor:1,name:'Гараж',area:'14,5',size:'2,92 × 4,95 м',x:1.71,z:2.725,h:2.15},
  {id:2,floor:1,name:'Кухня',area:'11,6',size:'Основна частина 3,12 × 3,23 м',x:5.08,z:3.15,h:2.35},
- {id:3,floor:2,name:'Кімната відпочинку',area:'10,6',size:'2,41 × 4,95 м, зі сходами',x:5.445,z:2.725,h:2.4},
+ {id:3,floor:2,name:'Кімната відпочинку',area:'10,6',size:'2,41 × 4,95 м, з отвором у підлозі',x:5.445,z:2.725,h:2.4},
  {id:4,floor:2,name:'Кімната відпочинку',area:'8,6',size:'3,76 × 2,30 м',x:2.13,z:1.40,h:2.4},
  {id:5,floor:2,name:'Кімната відпочинку',area:'9,0',size:'3,76 × 2,42 м',x:2.13,z:3.99,h:2.4}
 ];
 export function makeModel(scene){
- const groups={};for(const key of ['first','second','roof','site','base','dims','roomLabels']){groups[key]=new T.Group();scene.add(groups[key]);}
+ const groups={};for(const key of ['first','second','roof','ceiling','gables','site','base','dims','roomLabels']){groups[key]=new T.Group();scene.add(groups[key]);}
  const clip=new T.Plane(new T.Vector3(0,-1,0),1.1);
  const mat=(color,extra={})=>new T.MeshStandardMaterial({color,roughness:.86,...extra});
  const wall=masonry('brick',clip),block=masonry('block',clip);
@@ -19,10 +19,11 @@ export function makeModel(scene){
  const frame=mat('#151919',{clippingPlanes:[clip],clipShadows:true,roughness:.55});
  const glass=mat('#779196',{clippingPlanes:[clip],transparent:true,opacity:.42,roughness:.2,metalness:.2});
  const concrete=mat('#b9b5ad'),floor=mat('#d9d5cb'),roofmat=mat('#444b4e',{metalness:.25,roughness:.65}),soil=mat('#b2b59f'),metal=mat('#686d64',{clippingPlanes:[clip],clipShadows:true}),stair=mat('#bcb5a6',{clippingPlanes:[clip],clipShadows:true});
- const timber=mat('#b39465'),sheet=mat('#adb0a8',{metalness:.35,roughness:.82});
+ const lining=pine(.08,clip),boards=pine(.12,clip,{pale:true}),deck=pine(.14,clip,{pale:true});
+ const timber=mat('#927044'),sheet=mat('#15191b',{metalness:.35,roughness:.82});
  const box=(g,x,y,z,w,h,d,m)=>{const o=new T.Mesh(new T.BoxGeometry(w,h,d),m);o.position.set(x,y,z);masonryUV(o);o.castShadow=true;o.receiveShadow=true;g.add(o);return o;};
  const houseBox=(g,x,y,z,w,h,d,m)=>box(g,x-W/2,y,z-D/2,w,h,d,m);
- const floorSlab=(g,x,z,w,d,y=0)=>houseBox(g,x,y-.10,z,w,.20,d,floor);
+ const floorSlab=(g,x,z,w,d,y=0)=>{houseBox(g,x,y-.10,z,w,.20,d,floor);if(g===groups.second)houseBox(g,x,y+.012,z,w,.024,d,boards);};
  // Openings are modelled as actual voids, never painted onto solid walls.
  function wallRun(g,axis,fixed,start,end,y,h,t,openings=[],m=wall){
   const cuts=[start,end,...openings.flatMap(o=>[o.a,o.b])].filter(v=>v>=start&&v<=end).sort((a,b)=>a-b);
@@ -34,7 +35,7 @@ export function makeModel(scene){
  function window(g,axis,fixed,a,b,y,low=.85,high=2.05){
   const put=(u,v,w,h,dep,m)=>axis==='x'?houseBox(g,u,y+v,fixed,w,h,dep,m):houseBox(g,fixed,y+v,u,dep,h,w,m);
   put((a+b)/2,(low+high)/2,b-a,high-low,.045,glass);
-  for(const u of [a+.03,b-.03,(a+b)/2])put(u,(low+high)/2,.055,high-low,.11,frame);
+  for(const u of [a+.03,b-.03])put(u,(low+high)/2,.055,high-low,.11,frame);
   for(const v of [low+.03,high-.03])put((a+b)/2,v,b-a,.055,.11,frame);
   put((a+b)/2,low-.04,b-a+.13,.06,.34,white);
  }
@@ -54,8 +55,8 @@ export function makeModel(scene){
    const geo=new T.ShapeGeometry(paneShape);geo.rotateY(-Math.PI/2);const pane=new T.Mesh(geo,glass);pane.material.side=T.DoubleSide;pane.position.set(W/2-.035,level,-D/2);g.add(pane);
    const curved=new T.Mesh(new T.TubeGeometry(new T.CatmullRomCurve3(points),40,.032,6,false),frame);g.add(curved);
    for(const z of [o.a+.025,o.b-.025])houseBox(g,W-.015,level+(o.low+o.spring)/2,z,.09,o.spring-o.low,.055,frame);
-   for(const y of [o.low+.025,o.spring-.025])houseBox(g,W-.015,level+y,(o.a+o.b)/2,.09,.055,o.b-o.a,frame);
-   houseBox(g,W-.015,level+(o.low+o.spring)/2,(o.a+o.b)/2,.09,o.spring-o.low,.055,frame);
+   for(const y of [o.low+.025])houseBox(g,W-.015,level+y,(o.a+o.b)/2,.09,.055,o.b-o.a,frame);
+
   }
   const archBrick=mat('#a5684e',{clippingPlanes:[clip],clipShadows:true});
   for(let i=0;i<15;i++){const a=(i+.5)/15*Math.PI;const brick=box(g,cx,level+o.spring+Math.sin(a)*(ry+.115),mid+Math.cos(a)*(rx+.115),.11,.215,.115,archBrick);brick.rotation.x=Math.PI/2-a;}
@@ -92,23 +93,31 @@ export function makeModel(scene){
  wallRun(groups.second,'z',.125,.25,5.2,LEVEL,2.4,.25);
  const upperArches=[{a:.57,b:2.04,low:.18,spring:1.92,high:2.27,arch:true},{a:2.94,b:4.41,low:.18,spring:1.92,high:2.27,arch:true}];
  sideFacade(groups.second,LEVEL,upperArches);upperArches.forEach(o=>archDetail(groups.second,o,LEVEL,true));
- wallRun(groups.second,'z',4.125,.25,5.2,LEVEL,2.4,.23,[{a:1.39,b:2.19,low:0,high:2.06},{a:3.55,b:4.35,low:0,high:2.06}]);
- wallRun(groups.second,'x',2.665,.25,4.01,LEVEL,2.4,.23);
+ wallRun(groups.second,'z',4.125,.25,5.2,LEVEL,2.4,.23,[{a:1.39,b:2.19,low:0,high:2.06},{a:3.55,b:4.35,low:0,high:2.06}],lining);
+ wallRun(groups.second,'x',2.665,.25,4.01,LEVEL,2.4,.23,[],lining);
  window(groups.second,'x',.125,1.9,3.04,LEVEL);window(groups.second,'x',5.325,1.38,2.54,LEVEL);
  // Existing upper exterior doorway leads directly onto the new terrace.
- // Indicative quarter-turn stairs correspond to stair locations in both plans.
- for(let i=0;i<9;i++)houseBox(groups.first,4.04,(i+1)*.173/2,3.05+i*.23,.90,(i+1)*.173,.23,stair);
- houseBox(groups.first,4.04,.78,5.0,.9,1.56,.40,stair);
- for(let i=0;i<6;i++)houseBox(groups.first,4.48+i*.19,(1.56+(i+1)*.173)/2,4.76,.19,1.56+(i+1)*.173,.88,stair);
+ // First-floor stairs removed at owner request. Existing upper opening remains.
  // Upper stair opening guardrail, clipped together with walls in inspection mode.
  for(let z=3.2;z<=4.7;z+=.3)houseBox(groups.second,5.68,LEVEL+.48,z,.035,.96,.035,frame);
  houseBox(groups.second,5.68,LEVEL+.97,3.95,.045,.05,1.65,frame);
  // Photo shows gable at the 5.45 m end: ridge runs along the 6.90 m axis.
  // Both roof pitches are visual estimates, not survey measurements.
  const roofY=5.02,ridge=5.83,ridgeZ=2.55;
+ // Pine-lined ceiling follows both slopes; exposed beams remain below the lining.
+ for(const [a,b,ya,yb] of [[.25,ridgeZ,5.01,5.69],[ridgeZ,D-.25,5.69,5.01]]){
+  const len=Math.hypot(b-a,yb-ya),angle=-Math.atan2(yb-ya,b-a);
+  const panel=houseBox(groups.ceiling,W/2,(ya+yb)/2,(a+b)/2,W-.50,.035,len,lining);panel.rotation.x=angle;
+  for(const x of [1.15,2.65,4.15,5.65]){const beam=houseBox(groups.ceiling,x,(ya+yb)/2-.13,(a+b)/2,.14,.20,len,timber);beam.rotation.x=angle;}
+ }
+ // Continue the internal timber partitions up to the roof-shaped ceiling.
+ const partition=new T.Shape();partition.moveTo(.25,5.0);partition.lineTo(D-.25,5.0);partition.lineTo(ridgeZ,5.68);partition.closePath();
+ const pg=new T.ExtrudeGeometry(partition,{depth:.23,bevelEnabled:false});pg.rotateY(-Math.PI/2);
+ const pm=new T.Mesh(pg,lining);pm.position.set(4.24-W/2,0,-D/2);masonryUV(pm);groups.ceiling.add(pm);
+ houseBox(groups.ceiling,2.13,5.32,2.665,3.76,.64,.23,lining);
  const tri=new T.Shape();tri.moveTo(0,roofY);tri.lineTo(D,roofY);tri.lineTo(ridgeZ,ridge);tri.closePath();
  const vent=new T.Path();vent.absellipse(ridgeZ,5.42,.105,.105,0,Math.PI*2);tri.holes.push(vent);
- for(const x of [.16,W]){const geo=new T.ExtrudeGeometry(tri,{depth:.16,bevelEnabled:false});geo.rotateY(-Math.PI/2);const m=new T.Mesh(geo,wall);m.position.set(x-W/2,0,-D/2);masonryUV(m);m.castShadow=true;groups.roof.add(m);}
+ for(const x of [.16,W]){const geo=new T.ExtrudeGeometry(tri,{depth:.16,bevelEnabled:false});geo.rotateY(-Math.PI/2);const m=new T.Mesh(geo,wall);m.position.set(x-W/2,0,-D/2);masonryUV(m);m.castShadow=true;groups.gables.add(m);}
  const ventRing=new T.Mesh(new T.TorusGeometry(.12,.026,8,28),mat('#8a9290'));ventRing.rotation.y=Math.PI/2;ventRing.position.set(W/2+.02,5.42,ridgeZ-D/2);groups.roof.add(ventRing);
  const flue=new T.Mesh(new T.CylinderGeometry(.065,.065,3.35,12),sheet);flue.position.set(W/2+.09,3.28,-D/2+.03);groups.roof.add(flue);
  for(const [a,b,ya,yb] of [[-.13,ridgeZ,4.98,ridge],[ridgeZ,D+.13,ridge,4.98]]){
@@ -123,6 +132,7 @@ export function makeModel(scene){
  wallRun(groups.first,'z',W-.15,D,D+EXT-.30,0,LEVEL-.2,.30,[],block);
  // Openings on the unseen extension facade remain unspecified, not invented.
  houseBox(groups.second,W/2,LEVEL-.10,D+EXT/2,W,.20,EXT,concrete);
+ houseBox(groups.second,W/2,LEVEL+.015,D+EXT/2,W,.03,EXT,deck);
  houseBox(groups.base,W/2,-.25,D+EXT/2,W+.06,.30,EXT+.06,concrete);
  // Terrace is unfinished: exposed structural timber, no decorative balustrade.
  const innerY=5.05,outerY=4.82,canopyDepth=EXT+.20;
@@ -154,7 +164,7 @@ export function makeModel(scene){
  dimension([-3.45,.05,-3.65],[3.45,.05,-3.65],'6,90 м');dimension([4.25,.05,-2.725],[4.25,.05,2.725],'5,45 м');
  dimension([4.25,.05,D/2],[4.25,.05,D/2+EXT],'2,30 м · прибудова');
  addLabel('<b>Прибудова · газоблок</b><span>6,90 × 2,30 м · зовнішній контур</span>',[0,.10,D/2+EXT/2],'room',1);
- addLabel('<b>Тераса</b><span>Над прибудовою · без оздоблення</span>',[0,LEVEL+.10,D/2+EXT/2],'room',2);
+ addLabel('<b>Тераса</b><span>Соснова дошка · 14 см</span>',[0,LEVEL+.10,D/2+EXT/2],'room',2);
  dimension([-5.1,-.35,-6.25],[16.23,-.35,-6.25],'21,33 м',true);dimension([16.85,-.35,-5.3],[15.95,-.35,23.82],'29,12 м',true);dimension([-4.51,-.35,24.72],[15.31,-.35,24.62],'19,82 м',true);dimension([-5.95,-.35,-5.3],[-5.36,-.35,23.92],'29,22 м',true);
  for(const r of rooms)addLabel(`<b>${r.id} · ${r.floor===2?'Кімната':r.name}</b><span>${r.area} м²</span>`,[r.x-W/2,r.floor===1?.10:LEVEL+.10,r.z-D/2],'room',r.floor);
  addLabel('<b>Ділянка · 600 м²</b>',[5.3,-.20,11.0],'site');addLabel('Б · Вбиральня',[1.9,2.1,22.2],'site');addLabel('Проїзд',[7,-.20,-7.5],'site');
@@ -180,4 +190,5 @@ export function makeModel(scene){
  }
  return {groups,clip,labels,garageCeiling,rooms,updateCaps};
 }
+
 

@@ -25,7 +25,20 @@ export function masonryUV(mesh){
  const pos=mesh.geometry.attributes.position,norm=mesh.geometry.attributes.normal,uv=mesh.geometry.attributes.uv;
  for(let i=0;i<pos.count;i++){
   const horizontal=Math.abs(norm.getX(i))>.5?pos.getZ(i)+mesh.position.z:pos.getX(i)+mesh.position.x;
-  uv.setXY(i,horizontal/tile[0],(pos.getY(i)+mesh.position.y)/tile[1]);
+  const vertical=Math.abs(norm.getY(i))>.5?pos.getZ(i)+mesh.position.z:pos.getY(i)+mesh.position.y;
+  uv.setXY(i,horizontal/tile[0],vertical/tile[1]);
  }
  uv.needsUpdate=true;
+}
+export function pine(width,clip,{pale=false}={}){
+ const c=document.createElement('canvas');c.width=1024;c.height=512;const ctx=c.getContext('2d');let seed=123;
+ const rand=()=>{seed=(seed*1664525+1013904223)>>>0;return seed/4294967296;};
+ for(let b=0;b<4;b++){
+  const y=b*128;ctx.fillStyle=`hsl(35 ${pale?35:48}% ${pale?68+rand()*7:57+rand()*10}%)`;ctx.fillRect(0,y,1024,128);
+  for(let i=0;i<65;i++){ctx.beginPath();ctx.strokeStyle=`rgba(104,65,27,${.04+rand()*.10})`;ctx.lineWidth=.5+rand();const yy=y+rand()*126;ctx.moveTo(0,yy);ctx.bezierCurveTo(270,yy-12,690,yy+12,1024,yy);ctx.stroke();}
+  for(let k=0;k<3;k++){const x=50+rand()*920,yy=y+20+rand()*85;for(let r=5;r>0;r--){ctx.beginPath();ctx.ellipse(x,yy,r*7,r*1.8,0,0,Math.PI*2);ctx.strokeStyle='#75502d55';ctx.stroke();}ctx.fillStyle='#624222';ctx.beginPath();ctx.ellipse(x,yy,6,3,0,0,Math.PI*2);ctx.fill();}
+  ctx.fillStyle='#6e4e3055';ctx.fillRect(0,y,1024,2);ctx.fillStyle='#fff6d438';ctx.fillRect(0,y+2,1024,1);
+ }
+ const map=new T.CanvasTexture(c);map.wrapS=map.wrapT=T.RepeatWrapping;map.colorSpace=T.SRGBColorSpace;map.anisotropy=8;
+ const material=new T.MeshStandardMaterial({map,roughness:.9,bumpMap:map,bumpScale:.002,clippingPlanes:clip?[clip]:[],clipShadows:true});material.userData.tile=[1.6,width*4];return material;
 }

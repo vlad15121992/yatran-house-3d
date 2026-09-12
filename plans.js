@@ -14,13 +14,13 @@ export function planSVG(mode){
  if(mode==='second'){
  body=outer+wall(401,25,23,495)+wall(25,267,376,23)+opening(400,139,25,80)+opening(400,355,25,80)+window(190,520,114,25)+window(138,0,116,25)+window(665,341,25,147)+window(665,104,25,147)+opening(565,-2,75,29);
  body+=room(210,150,'5 · Кімната відпочинку','9,0')+room(210,400,'4 · Кімната відпочинку','8,6')+room(545,265,'3 · Кімната','10,6');
- body+=`<rect x="430" y="27" width="132" height="170" fill="#dfdace" stroke="${stroke}"/>`;for(let i=0;i<10;i++)body+=`<path d="M430 ${30+i*16}h132" stroke="#888"/>`;
+ body+=`<rect x="430" y="27" width="132" height="170" fill="#dfdace" stroke="#393b37" stroke-dasharray="7 4"/>`+text(496,110,'Отвір',14);
  body+=text(210,213,'3,76 × 2,42 м',13)+text(210,467,'3,76 × 2,30 м',13)+text(550,339,'h = 2,40 м',13);
  }else{
  body=outer+wall(317,25,33,495)+wall(466,348,20,172)+wall(466,338,199,20)+opening(523,336,90,24)+opening(50,518,243,29)+opening(508,518,126,29)+opening(663,383,29,110)+window(365,520,88,25)+window(665,141,25,110);
  body+=room(172,267,'1 · Гараж','14,5')+room(510,229,'2 · Кухня','11,6');body+=text(172,339,'2,92 × 4,95 м',13)+text(172,362,'h = 2,15 м',13)+text(516,281,'h = 2,35 м',13)+text(570,439,'Вхід',15);
- body+=`<path d="M352 25h195v88h-106v132h-89z" fill="#dfdace" stroke="${stroke}"/>`;for(let i=0;i<8;i++)body+=`<path d="M352 ${118+i*16}h89" stroke="#888"/>`;for(let i=0;i<6;i++)body+=`<path d="M${441+i*18} 25v88" stroke="#888"/>`;
+
  }
- const extension=mode==='second'?`<rect x="0" y="-230" width="690" height="230" fill="#dedbd2" stroke="${stroke}" stroke-width="2"/>${text(345,-136,'ТЕРАСА НАД ПРИБУДОВОЮ',18)}${text(345,-100,'6,90 × 2,30 м · без оздоблення',14)}`:`<rect x="0" y="-230" width="690" height="230" fill="#d4d7d0" stroke="${stroke}" stroke-width="2"/><rect x="30" y="-200" width="630" height="200" fill="#fafaf5" stroke="${stroke}" stroke-width="2"/>${text(345,-130,'ПРИБУДОВА · ГАЗОБЛОК',18)}${text(345,-98,'6,90 × 2,30 м · зовнішній контур',14)}${text(345,-62,'Прорізи не показані: немає даних',12)}`;
+ const extension=mode==='second'?`<rect x="0" y="-230" width="690" height="230" fill="#dedbd2" stroke="${stroke}" stroke-width="2"/>${text(345,-136,'ТЕРАСА НАД ПРИБУДОВОЮ',18)}${text(345,-100,'6,90 × 2,30 м · соснова дошка 14 см',14)}`:`<rect x="0" y="-230" width="690" height="230" fill="#d4d7d0" stroke="${stroke}" stroke-width="2"/><rect x="30" y="-200" width="630" height="200" fill="#fafaf5" stroke="${stroke}" stroke-width="2"/>${text(345,-130,'ПРИБУДОВА · ГАЗОБЛОК',18)}${text(345,-98,'6,90 × 2,30 м · зовнішній контур',14)}${text(345,-62,'Прорізи не показані: немає даних',12)}`;
  return `<svg viewBox="-45 -275 840 980" role="img" aria-label="План ${mode==='second'?'другого':'першого'} поверху з прибудовою">${extension}${body}${dims}${text(345,655,mode==='second'?'2 ПОВЕРХ · 28,2 м² + тераса':'1 ПОВЕРХ · 26,1 м² + прибудова',17)}</svg>`;
 }
