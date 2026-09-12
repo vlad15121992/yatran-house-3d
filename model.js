@@ -107,7 +107,7 @@ export function makeModel(scene){
  // Pine-lined ceiling follows both slopes; exposed beams remain below the lining.
  for(const [a,b,ya,yb] of [[.25,ridgeZ,5.01,5.69],[ridgeZ,D-.25,5.69,5.01]]){
   const len=Math.hypot(b-a,yb-ya),angle=-Math.atan2(yb-ya,b-a);
-  const panel=houseBox(groups.ceiling,W/2,(ya+yb)/2,(a+b)/2,W-.50,.035,len,lining);panel.rotation.x=angle;
+  const panel=houseBox(groups.ceiling,W/2,(ya+yb)/2,(a+b)/2,W-.25,.035,len,lining);panel.rotation.x=angle;
   for(const x of [1.15,2.65,4.15,5.65]){const beam=houseBox(groups.ceiling,x,(ya+yb)/2-.13,(a+b)/2,.14,.20,len,timber);beam.rotation.x=angle;}
  }
  // Continue the internal timber partitions up to the roof-shaped ceiling.
@@ -190,5 +190,6 @@ export function makeModel(scene){
  }
  return {groups,clip,labels,garageCeiling,rooms,updateCaps};
 }
+
 
 
