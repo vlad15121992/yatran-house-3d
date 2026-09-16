@@ -14,11 +14,13 @@ export function planSVG(mode){
  if(mode==='second'){
  body=outer+wall(401,25,23,495)+wall(25,267,376,23)+opening(400,139,25,80)+opening(400,355,25,80)+window(190,520,114,25)+window(138,0,116,25)+window(665,341,25,147)+window(665,104,25,147)+opening(565,-2,75,29);
  body+=room(210,150,'5 · Кімната відпочинку','9,0')+room(210,400,'4 · Кімната відпочинку','8,6')+room(545,265,'3 · Кімната','10,6');
- body+=`<rect x="430" y="27" width="132" height="170" fill="#dfdace" stroke="#393b37" stroke-dasharray="7 4"/>`+text(496,110,'Отвір',14);
+ body+=`<rect x="424" y="25" width="103" height="68" fill="#dfdace" stroke="#393b37" stroke-dasharray="7 4"/>`+text(475,56,'Отвір',11)+text(475,77,'103 × 68 см',10);
  body+=text(210,213,'3,76 × 2,42 м',13)+text(210,467,'3,76 × 2,30 м',13)+text(550,339,'h = 2,40 м',13);
  }else{
  body=outer+wall(317,25,33,495)+wall(466,348,20,172)+wall(466,338,199,20)+opening(523,336,90,24)+opening(50,518,243,29)+opening(508,518,126,29)+opening(663,383,29,110)+window(365,520,88,25)+window(665,141,25,110);
- body+=room(172,267,'1 · Гараж','14,5')+room(510,229,'2 · Кухня','11,6');body+=text(172,339,'2,92 × 4,95 м',13)+text(172,362,'h = 2,15 м',13)+text(516,281,'h = 2,35 м',13)+text(570,439,'Вхід',15);
+ body+=opening(555,-2,80,29)+text(592,48,'Прохід ≈ 80 см',11);
+ body+=room(172,267,'1 · Гараж','14,5')+room(510,229,'2 · Кухня','11,6');body+=text(172,339,'2,92 × 4,95 м',13)+text(172,362,'h = 2,15 м',13)+text(516,281,'h = 2,20 м',13)+text(570,439,'Вхід',15);
+ body+=`<rect x="424" y="25" width="103" height="68" fill="none" stroke="#8b8172" stroke-dasharray="5 4"/>`+text(475,65,'Отвір у стелі',10);
 
  }
  const extension=mode==='second'?`<rect x="0" y="-223" width="690" height="223" fill="#dedbd2" stroke="${stroke}" stroke-width="2"/>${text(345,-136,'ТЕРАСА НАД ПРИБУДОВОЮ',18)}${text(345,-100,'6,90 × 2,23 м · соснова дошка 14 см',14)}`:`<rect x="0" y="-223" width="690" height="223" fill="#d4d7d0" stroke="${stroke}" stroke-width="2"/><rect x="30" y="-193" width="630" height="193" fill="#fafaf5" stroke="${stroke}" stroke-width="2"/>${text(345,-130,'ПРИБУДОВА · ГАЗОБЛОК',18)}${text(345,-98,'6,90 × 2,23 м · зовнішній контур',14)}${window(660,-90,30,50)}${text(345,-62,'Вікно збоку 50 × 60 см · висота прибудови 2,85 м',12)}`;

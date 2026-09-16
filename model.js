@@ -4,10 +4,13 @@ import {masonry,masonryUV,pine} from './masonry.js';
 // Metres. Front edge z=0; rear edge z=5.45; house centred in world space.
 export const W=6.90,D=5.45,LEVEL=2.60,EXT=2.23,TERRACE=2.85;
 // Owner dimensions: finished terrace top, and side window measured from brick junction/top.
+export const HATCH={x:4.24,z:4.52,width:1.03,depth:.68};
+export const KITCHEN_HEIGHT=2.20;
+export const PASSAGE={a:5.55,b:6.35,height:2.05}; // 0.80 m wide; 0.30 m from right inner corner. Height estimated from photo.
 export const extensionWindow={a:D+.40,b:D+.90,low:TERRACE-.60-.60,high:TERRACE-.60};
 export const rooms=[
  {id:1,floor:1,name:'Гараж',area:'14,5',size:'2,92 × 4,95 м',x:1.71,z:2.725,h:2.15},
- {id:2,floor:1,name:'Кухня',area:'11,6',size:'Основна частина 3,12 × 3,23 м',x:5.08,z:3.15,h:2.35},
+ {id:2,floor:1,name:'Кухня',area:'11,6',size:'Основна частина 3,12 × 3,23 м',x:5.08,z:3.15,h:KITCHEN_HEIGHT},
  {id:3,floor:2,name:'Кімната відпочинку',area:'10,6',size:'2,41 × 4,95 м, з отвором у підлозі',x:5.445,z:2.725,h:2.4},
  {id:4,floor:2,name:'Кімната відпочинку',area:'8,6',size:'3,76 × 2,30 м',x:2.13,z:1.40,h:2.4},
  {id:5,floor:2,name:'Кімната відпочинку',area:'9,0',size:'3,76 × 2,42 м',x:2.13,z:3.99,h:2.4}
@@ -66,7 +69,14 @@ export function makeModel(scene){
  floorSlab(groups.first,3.45,2.725,W,D);
  // Ground floor: garage left, kitchen right, recessed entrance at front-right.
  wallRun(groups.first,'x',.125,0,W,0,2.35,.25,[{a:.50,b:2.93,low:0,high:2.04},win(3.65,4.53,.8,2.0),{a:5.08,b:6.34,low:0,high:2.1}]);
- wallRun(groups.first,'x',5.325,0,W,0,2.35,.25);
+ // Rough knocked-through rear brick wall: irregular exposed jambs, no door/frame.
+ for(let row=0;row<25;row++){
+  const y=row*PASSAGE.height/25,h=PASSAGE.height/25;
+  const left=PASSAGE.a-[.012,.032,0,.021,.008][row%5],right=PASSAGE.b+[.019,0,.026,.009][row%4];
+  wallRun(groups.first,'x',5.325,0,W,y,h,.25,[{a:left,b:right,low:0,high:h}]);
+ }
+ houseBox(groups.first,W/2,(PASSAGE.height+2.35)/2,5.325,W,2.35-PASSAGE.height,.25,wall);
+ for(let i=0;i<8;i++){const chip=[.024,.008,.034,.013][i%4];houseBox(groups.first,PASSAGE.a+(i+.5)*.10,PASSAGE.height-chip/2,5.325,.10,chip,.25,wall);}
  wallRun(groups.first,'z',.125,.25,5.2,0,2.35,.25);
  const entrance={a:.52,b:1.62,low:0,spring:1.61,high:2.10,arch:true};
  sideFacade(groups.first,0,[entrance,win(2.94,4.04,.78,1.95)]);archDetail(groups.first,entrance,0,false);
@@ -81,10 +91,21 @@ export function makeModel(scene){
  houseBox(groups.first,5.98,.95,1.925,.025,.18,.05,concrete);
  // Ground ceiling of garage is 0.20 m lower than kitchen; visible only with full model.
  const garageCeiling=houseBox(groups.first,1.71,2.25,2.725,2.92,.20,4.95,concrete);
- // Upper slab split around actual stairwell in rear-right corner.
- floorSlab(groups.second,2.12,2.725,4.24,D,LEVEL);
- floorSlab(groups.second,5.57,1.565,2.66,3.13,LEVEL);
- floorSlab(groups.second,6.30,4.29,1.20,2.32,LEVEL);
+ // Four slab strips share the same 103 × 68 cm void as the kitchen ceiling.
+ function aroundHatch(x0,x1,z0,z1,put){
+  const hx=HATCH.x,hz=HATCH.z,ex=hx+HATCH.width,ez=hz+HATCH.depth;
+  for(const [a,b,c,d] of [[x0,hx,z0,z1],[ex,x1,z0,z1],[hx,ex,z0,hz],[hx,ex,ez,z1]])
+   if(b>a&&d>c)put((a+b)/2,(c+d)/2,b-a,d-c);
+ }
+ aroundHatch(0,W,0,D,(x,z,w,d)=>floorSlab(groups.second,x,z,w,d,LEVEL));
+ const kitchenCeiling=new T.Group();groups.first.add(kitchenCeiling);
+ const ceilingPatch=(x,z,w,d)=>houseBox(kitchenCeiling,x,KITCHEN_HEIGHT+.015,z,w,.03,d,lining);
+ aroundHatch(3.50,6.65,1.97,5.20,ceilingPatch);
+ ceilingPatch((3.50+4.66)/2,(.25+1.97)/2,4.66-3.50,1.97-.25);
+ // Exposed timber edges outside the clear opening; no stairs or invented guardrail.
+ houseBox(kitchenCeiling,HATCH.x-.03,(KITCHEN_HEIGHT+LEVEL)/2,HATCH.z+HATCH.depth/2,.06,LEVEL-KITCHEN_HEIGHT,HATCH.depth,timber);
+ houseBox(kitchenCeiling,HATCH.x+HATCH.width+.03,(KITCHEN_HEIGHT+LEVEL)/2,HATCH.z+HATCH.depth/2,.06,LEVEL-KITCHEN_HEIGHT,HATCH.depth,timber);
+ houseBox(kitchenCeiling,HATCH.x+HATCH.width/2,(KITCHEN_HEIGHT+LEVEL)/2,HATCH.z-.03,HATCH.width+.06,LEVEL-KITCHEN_HEIGHT,.06,timber);
  // The photographed brickwork continues across the floor line without a white band.
  houseBox(groups.second,W/2,2.475,.12,W,.25,.26,wall);
  houseBox(groups.second,W/2,2.475,D-.12,W,.25,.26,wall);
@@ -100,9 +121,6 @@ export function makeModel(scene){
  window(groups.second,'x',.125,1.9,3.04,LEVEL);window(groups.second,'x',5.325,1.38,2.54,LEVEL);
  // Upper doorway faces the terrace. Existing house floor datum remains provisional.
  // First-floor stairs removed at owner request. Existing upper opening remains.
- // Upper stair opening guardrail, clipped together with walls in inspection mode.
- for(let z=3.2;z<=4.7;z+=.3)houseBox(groups.second,5.68,LEVEL+.48,z,.035,.96,.035,frame);
- houseBox(groups.second,5.68,LEVEL+.97,3.95,.045,.05,1.65,frame);
  // Photo shows gable at the 5.45 m end: ridge runs along the 6.90 m axis.
  // Both roof pitches are visual estimates, not survey measurements.
  const roofY=5.02,ridge=5.83,ridgeZ=2.55;
@@ -192,7 +210,7 @@ export function makeModel(scene){
    if(min<height&&max>height){const cap=new T.Mesh(new T.PlaneGeometry(width,depth),capMat);cap.rotation.x=-Math.PI/2;cap.position.set(o.position.x,height+.002,o.position.z);caps.add(cap);}
   });
  }
- return {groups,clip,labels,garageCeiling,rooms,updateCaps};
+ return {groups,clip,labels,garageCeiling,kitchenCeiling,rooms,updateCaps};
 }
 
 

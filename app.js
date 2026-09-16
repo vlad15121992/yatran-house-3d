@@ -1,7 +1,7 @@
 import * as T from 'three';
 import {OrbitControls} from './vendor/OrbitControls.js';
-import {makeModel,rooms,W,D,LEVEL} from './model.js';
-import {planSVG} from './plans.js';
+import {makeModel,rooms,W,D,LEVEL} from './model.js?v=kitchen1';
+import {planSVG} from './plans.js?v=kitchen1';
 
 const $=id=>document.getElementById(id),canvas=$('scene');
 const scene=new T.Scene();scene.background=new T.Color('#f6f4ef');const reducedMotion=matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -29,6 +29,7 @@ function apply(){
  controls.minDistance=.05;controls.maxPolarAngle=Math.PI-.01;
  model.clip.constant=$('cut').checked?(current==='second'?LEVEL+1.05:1.05):100;
  model.garageCeiling.visible=(inside||!floorMode)&&!$('cut').checked;
+ model.kitchenCeiling.visible=model.garageCeiling.visible;
  model.updateCaps(model.clip.constant,current);
  model.groups.dims.visible=$('dimensions').checked;
  model.groups.dims.children.forEach(m=>m.visible=!m.userData.site||current==='site');
@@ -48,7 +49,7 @@ function focusRoom(id){
  const r=rooms.find(r=>r.id===id);if(!r)return;
  setView(r.floor===1?'first':'second');selected=id;enterInside();canvas.focus({preventScroll:true});
  // Eye-level viewpoints in clear floor space, away from walls and the upper floor opening.
- const views={1:[1.71,4.30,1.71,1.1],2:[5.5,4.5,5.1,2.5],3:[5.95,2.9,5.95,.9],4:[1.1,1.75,3.4,1.1],5:[1.1,4.5,3.4,3.4]};
+ const views={1:[1.71,4.30,1.71,1.1],2:[5.4,2.55,5.3,5.1],3:[5.95,2.9,5.95,.9],4:[1.1,1.75,3.4,1.1],5:[1.1,4.5,3.4,3.4]};
  const [x,z,tx,tz]=views[id],y=(r.floor===2?LEVEL:0)+1.60;
  fly([W/2-x,y,z-D/2],[W/2-tx,y,tz-D/2]);
  $('room-info').hidden=false;$('room-info').innerHTML=`<b>${r.id} · ${r.name} · ${r.area} м²</b>${r.size}<br><small>Камера всередині · висота погляду 1,60 м</small>`;
