@@ -8,18 +8,26 @@ export const HATCH={x:4.24,z:4.52,width:1.03,depth:.68};
 export const KITCHEN_HEIGHT=2.20;
 export const PASSAGE={a:5.55,b:6.35,height:2.05}; // 0.80 m wide; 0.30 m from right inner corner. Height estimated from photo.
 export const extensionWindow={a:D+.40,b:D+.90,low:TERRACE-.60-.60,high:TERRACE-.60};
+// Partition follows the red mark: continuation of the main ground-floor dividing wall.
+export const PARTITION={x:3.335,thickness:.10,doorWidth:.80,doorHeight:2.05};
+// Rear elevation: right external corner is local x=0 after the model mirror.
+export const toiletWindow={a:1.66,b:2.16,low:TERRACE-.60-.60,high:TERRACE-.60}; // Owner confirmed same height as the side window.
 export const rooms=[
  {id:1,floor:1,name:'Гараж',area:'14,5',size:'2,92 × 4,95 м',x:1.71,z:2.725,h:2.15},
  {id:2,floor:1,name:'Кухня',area:'11,6',size:'Основна частина 3,12 × 3,23 м',x:5.08,z:3.15,h:KITCHEN_HEIGHT},
  {id:3,floor:2,name:'Кімната відпочинку',area:'10,6',size:'2,41 × 4,95 м, з отвором у підлозі',x:5.445,z:2.725,h:2.4},
  {id:4,floor:2,name:'Кімната відпочинку',area:'8,6',size:'3,76 × 2,30 м',x:2.13,z:1.40,h:2.4},
- {id:5,floor:2,name:'Кімната відпочинку',area:'9,0',size:'3,76 × 2,42 м',x:2.13,z:3.99,h:2.4}
+ {id:5,floor:2,name:'Кімната відпочинку',area:'9,0',size:'3,76 × 2,42 м',x:2.13,z:3.99,h:2.4},
+ {id:6,floor:1,name:'Кухня · прибудова',area:null,extension:true,size:'Гіпсокартонна перегородка з проходом до туалету',x:5.0,z:6.42,h:2.62},
+ {id:7,floor:1,name:'Туалет · прибудова',area:null,extension:true,size:'Вікно 50 × 60 см · чорна рама',x:1.8,z:6.42,h:2.62}
+
 ];
 export function makeModel(scene){
  const groups={};for(const key of ['first','second','roof','ceiling','gables','site','base','dims','roomLabels']){groups[key]=new T.Group();scene.add(groups[key]);}
  const clip=new T.Plane(new T.Vector3(0,-1,0),1.1);
  const mat=(color,extra={})=>new T.MeshStandardMaterial({color,roughness:.86,...extra});
  const wall=masonry('brick',clip),block=masonry('block',clip);
+ const drywall=mat('#97bda9',{clippingPlanes:[clip],clipShadows:true}),joint=mat('#7f9e8e',{clippingPlanes:[clip],clipShadows:true});
  const white=mat('#ddd9ce',{clippingPlanes:[clip],clipShadows:true});
  const frame=mat('#151919',{clippingPlanes:[clip],clipShadows:true,roughness:.55});
  const glass=mat('#779196',{clippingPlanes:[clip],transparent:true,opacity:.42,roughness:.2,metalness:.2});
@@ -147,11 +155,22 @@ export function makeModel(scene){
  }
  // Permanent AAC extension, confirmed behind the upper exterior doorway.
  floorSlab(groups.first,W/2,D+EXT/2,W,EXT);
- wallRun(groups.first,'x',D+EXT-.15,0,W,0,TERRACE-.23,.30,[],block);
+ wallRun(groups.first,'x',D+EXT-.15,0,W,0,TERRACE-.23,.30,[toiletWindow],block);
+ window(groups.first,'x',D+EXT-.15,toiletWindow.a,toiletWindow.b,0,toiletWindow.low,toiletWindow.high);
  wallRun(groups.first,'z',.15,D,D+EXT-.30,0,TERRACE-.23,.30,[],block);
  wallRun(groups.first,'z',W-.15,D,D+EXT-.30,0,TERRACE-.23,.30,[extensionWindow],block);
  window(groups.first,'z',W-.15,extensionWindow.a,extensionWindow.b,0,extensionWindow.low,extensionWindow.high);
- // Openings on the unseen extension facade remain unspecified, not invented.
+ // Unfinished green plasterboard partition, open door, no door leaf or fixtures.
+ const doorCentre=D+(EXT-.30)/2,doorA=doorCentre-PARTITION.doorWidth/2,doorB=doorCentre+PARTITION.doorWidth/2;
+ wallRun(groups.first,'z',PARTITION.x,D,D+EXT-.30,0,TERRACE-.23,PARTITION.thickness,[{a:doorA,b:doorB,low:0,high:PARTITION.doorHeight}],drywall);
+ for(const side of [-1,1]){
+  const face=PARTITION.x+side*(PARTITION.thickness/2+.002);
+  for(const z of [doorA-.02,doorB+.02]){
+   houseBox(groups.first,face,(TERRACE-.23)/2,z,.004,TERRACE-.23,.006,joint);
+   for(let y=.18;y<TERRACE-.3;y+=.28)houseBox(groups.first,face+side*.003,y,z,.003,.010,.010,frame);
+  }
+ }
+
  houseBox(groups.second,W/2,TERRACE-.13,D+EXT/2,W,.20,EXT,concrete);
  houseBox(groups.second,W/2,TERRACE-.015,D+EXT/2,W,.03,EXT,deck);
  houseBox(groups.base,W/2,-.25,D+EXT/2,W+.06,.30,EXT+.06,concrete);
@@ -185,10 +204,9 @@ export function makeModel(scene){
  dimension([-3.45,.05,-3.65],[3.45,.05,-3.65],'6,90 м');dimension([4.25,.05,-2.725],[4.25,.05,2.725],'5,45 м');
  dimension([4.25,.05,D/2],[4.25,.05,D/2+EXT],'2,23 м · прибудова');
  dimension([4.25,0,D/2+EXT],[4.25,TERRACE,D/2+EXT],'2,85 м · до підлоги тераси');
- addLabel('<b>Прибудова · газоблок</b><span>6,90 × 2,23 м · висота 2,85 м</span>',[0,.10,D/2+EXT/2],'room',1);
  addLabel('<b>Тераса</b><span>Соснова дошка · 14 см</span>',[0,TERRACE+.10,D/2+EXT/2],'room',2);
  dimension([-5.1,-.35,-6.25],[16.23,-.35,-6.25],'21,33 м',true);dimension([16.85,-.35,-5.3],[15.95,-.35,23.82],'29,12 м',true);dimension([-4.51,-.35,24.72],[15.31,-.35,24.62],'19,82 м',true);dimension([-5.95,-.35,-5.3],[-5.36,-.35,23.92],'29,22 м',true);
- for(const r of rooms)addLabel(`<b>${r.id} · ${r.floor===2?'Кімната':r.name}</b><span>${r.area} м²</span>`,[r.x-W/2,r.floor===1?.10:LEVEL+.10,r.z-D/2],'room',r.floor);
+ for(const r of rooms)addLabel(`<b>${r.extension?r.name:r.id+' · '+(r.floor===2?'Кімната':r.name)}</b><span>${r.area?r.area+' м²':'Прибудова'}</span>`,[r.x-W/2,r.floor===1?.10:LEVEL+.10,r.z-D/2],'room',r.floor);
  addLabel('<b>Ділянка · 600 м²</b>',[5.3,-.20,11.0],'site');addLabel('Б · Вбиральня',[1.9,2.1,22.2],'site');addLabel('Проїзд',[7,-.20,-7.5],'site');
  // Mirrored world X keeps plan-left on the viewer's left when facing the entrance.
  for(const g of Object.values(groups))g.scale.x=-1;

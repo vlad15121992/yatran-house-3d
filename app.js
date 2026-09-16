@@ -1,7 +1,7 @@
 import * as T from 'three';
 import {OrbitControls} from './vendor/OrbitControls.js';
-import {makeModel,rooms,W,D,LEVEL} from './model.js?v=kitchen1';
-import {planSVG} from './plans.js?v=kitchen1';
+import {makeModel,rooms,W,D,LEVEL} from './model.js?v=toilet1';
+import {planSVG} from './plans.js?v=toilet1';
 
 const $=id=>document.getElementById(id),canvas=$('scene');
 const scene=new T.Scene();scene.background=new T.Color('#f6f4ef');const reducedMotion=matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -37,9 +37,9 @@ function apply(){
  $('roof').disabled=floorMode||inside;$('cut').disabled=current==='site';$('spin').disabled=inside;$('walk').checked=inside;$('walk-controls').hidden=!inside||plan;
  $('hint').textContent=plan?'Натисніть «3D огляд», щоб повернутися до моделі':inside?'Перетягніть — озирнутись · Коліщатко — вперед / назад · WASD — рух':'Перетягніть — обертання · Коліщатко — наближення та прохід усередину';
  const visibleRooms=current==='second'?rooms.filter(r=>r.floor===2):current==='first'?rooms.filter(r=>r.floor===1):rooms;
- $('room-list').innerHTML=visibleRooms.map(r=>`<button class="room" data-room="${r.id}"><span>${r.id} · ${r.name}</span><span>${r.area} м²</span></button>`).join('');
+ $('room-list').innerHTML=visibleRooms.map(r=>`<button class="room" data-room="${r.id}"><span>${r.extension?r.name:r.id+' · '+r.name}</span><span>${r.area?r.area+' м²':'Увійти'}</span></button>`).join('');
  $('room-list').querySelectorAll('button').forEach(b=>b.addEventListener('click',()=>focusRoom(Number(b.dataset.room))));
- $('view-title').textContent=inside?(selected?'КІМНАТА '+selected+' / ЗСЕРЕДИНИ':'ОГЛЯД ЗСЕРЕДИНИ'):title[current];$('plan-content').innerHTML=planSVG(current);
+ $('view-title').textContent=inside?(selected?(rooms.find(r=>r.id===selected)?.extension?rooms.find(r=>r.id===selected).name:'КІМНАТА '+selected)+' / ЗСЕРЕДИНИ':'ОГЛЯД ЗСЕРЕДИНИ'):title[current];$('plan-content').innerHTML=planSVG(current);
  $('snapshot').disabled=plan;$('top').disabled=plan;
 }
 function setView(view){inside=false;current=view;selected=null;$('ceiling').checked=false;$('room-info').hidden=true;$('cut').checked=view==='first'||view==='second';document.querySelectorAll('.view').forEach(b=>{b.classList.toggle('active',b.dataset.view===view);b.setAttribute('aria-pressed',String(b.dataset.view===view));});apply();defaultCamera();}
@@ -49,10 +49,10 @@ function focusRoom(id){
  const r=rooms.find(r=>r.id===id);if(!r)return;
  setView(r.floor===1?'first':'second');selected=id;enterInside();canvas.focus({preventScroll:true});
  // Eye-level viewpoints in clear floor space, away from walls and the upper floor opening.
- const views={1:[1.71,4.30,1.71,1.1],2:[5.4,2.55,5.3,5.1],3:[5.95,2.9,5.95,.9],4:[1.1,1.75,3.4,1.1],5:[1.1,4.5,3.4,3.4]};
+ const views={1:[1.71,4.30,1.71,1.1],2:[5.4,2.55,5.3,5.1],3:[5.95,2.9,5.95,.9],4:[1.1,1.75,3.4,1.1],5:[1.1,4.5,3.4,3.4],6:[5.9,6.415,3.3,6.415],7:[2.65,6.05,1.7,7.3]};
  const [x,z,tx,tz]=views[id],y=(r.floor===2?LEVEL:0)+1.60;
  fly([W/2-x,y,z-D/2],[W/2-tx,y,tz-D/2]);
- $('room-info').hidden=false;$('room-info').innerHTML=`<b>${r.id} · ${r.name} · ${r.area} м²</b>${r.size}<br><small>Камера всередині · висота погляду 1,60 м</small>`;
+ $('room-info').hidden=false;$('room-info').innerHTML=`<b>${r.extension?r.name:r.id+' · '+r.name+' · '+r.area+' м²'}</b>${r.size}<br><small>Камера всередині · висота погляду 1,60 м</small>`;
 }
 function moveInside(distance,sideways=0){
  tween=null;const direction=camera.getWorldDirection(new T.Vector3()),right=new T.Vector3().crossVectors(direction,camera.up).normalize();
