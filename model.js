@@ -2,7 +2,9 @@ import * as T from 'three';
 import {masonry,masonryUV,pine} from './masonry.js';
 
 // Metres. Front edge z=0; rear edge z=5.45; house centred in world space.
-export const W=6.90,D=5.45,LEVEL=2.60,EXT=2.30;
+export const W=6.90,D=5.45,LEVEL=2.60,EXT=2.23,TERRACE=2.85;
+// Owner dimensions: finished terrace top, and side window measured from brick junction/top.
+export const extensionWindow={a:D+.40,b:D+.90,low:TERRACE-.60-.60,high:TERRACE-.60};
 export const rooms=[
  {id:1,floor:1,name:'Гараж',area:'14,5',size:'2,92 × 4,95 м',x:1.71,z:2.725,h:2.15},
  {id:2,floor:1,name:'Кухня',area:'11,6',size:'Основна частина 3,12 × 3,23 м',x:5.08,z:3.15,h:2.35},
@@ -96,7 +98,7 @@ export function makeModel(scene){
  wallRun(groups.second,'z',4.125,.25,5.2,LEVEL,2.4,.23,[{a:1.39,b:2.19,low:0,high:2.06},{a:3.55,b:4.35,low:0,high:2.06}],lining);
  wallRun(groups.second,'x',2.665,.25,4.01,LEVEL,2.4,.23,[],lining);
  window(groups.second,'x',.125,1.9,3.04,LEVEL);window(groups.second,'x',5.325,1.38,2.54,LEVEL);
- // Existing upper exterior doorway leads directly onto the new terrace.
+ // Upper doorway faces the terrace. Existing house floor datum remains provisional.
  // First-floor stairs removed at owner request. Existing upper opening remains.
  // Upper stair opening guardrail, clipped together with walls in inspection mode.
  for(let z=3.2;z<=4.7;z+=.3)houseBox(groups.second,5.68,LEVEL+.48,z,.035,.96,.035,frame);
@@ -127,16 +129,17 @@ export function makeModel(scene){
  }
  // Permanent AAC extension, confirmed behind the upper exterior doorway.
  floorSlab(groups.first,W/2,D+EXT/2,W,EXT);
- wallRun(groups.first,'x',D+EXT-.15,0,W,0,LEVEL-.2,.30,[],block);
- wallRun(groups.first,'z',.15,D,D+EXT-.30,0,LEVEL-.2,.30,[],block);
- wallRun(groups.first,'z',W-.15,D,D+EXT-.30,0,LEVEL-.2,.30,[],block);
+ wallRun(groups.first,'x',D+EXT-.15,0,W,0,TERRACE-.23,.30,[],block);
+ wallRun(groups.first,'z',.15,D,D+EXT-.30,0,TERRACE-.23,.30,[],block);
+ wallRun(groups.first,'z',W-.15,D,D+EXT-.30,0,TERRACE-.23,.30,[extensionWindow],block);
+ window(groups.first,'z',W-.15,extensionWindow.a,extensionWindow.b,0,extensionWindow.low,extensionWindow.high);
  // Openings on the unseen extension facade remain unspecified, not invented.
- houseBox(groups.second,W/2,LEVEL-.10,D+EXT/2,W,.20,EXT,concrete);
- houseBox(groups.second,W/2,LEVEL+.015,D+EXT/2,W,.03,EXT,deck);
+ houseBox(groups.second,W/2,TERRACE-.13,D+EXT/2,W,.20,EXT,concrete);
+ houseBox(groups.second,W/2,TERRACE-.015,D+EXT/2,W,.03,EXT,deck);
  houseBox(groups.base,W/2,-.25,D+EXT/2,W+.06,.30,EXT+.06,concrete);
  // Terrace is unfinished: exposed structural timber, no decorative balustrade.
  const innerY=5.05,outerY=4.82,canopyDepth=EXT+.20;
- for(const x of [.12,2.34,4.56,W-.12])houseBox(groups.roof,x,(LEVEL+outerY)/2,D+EXT-.10,.14,outerY-LEVEL,.14,timber);
+ for(const x of [.12,2.34,4.56,W-.12])houseBox(groups.roof,x,(TERRACE+outerY)/2,D+EXT-.10,.14,outerY-TERRACE,.14,timber);
  houseBox(groups.roof,W/2,outerY-.03,D+EXT-.10,W+.2,.19,.16,timber);
  houseBox(groups.roof,W/2,innerY-.08,D+.06,W+.1,.18,.13,timber);
  const canopySlope=Math.atan2(innerY-outerY,canopyDepth),canopyLen=Math.hypot(canopyDepth,innerY-outerY);
@@ -160,11 +163,12 @@ export function makeModel(scene){
  const labels=[];
  function addLabel(text,p,kind='dimension',floorNo=0){labels.push({text,point:new T.Vector3(...p),kind,floor:floorNo});}
  const lineMat=new T.LineBasicMaterial({color:'#8e8a7f'});
- function dimension(a,b,text,site=false){const pts=[new T.Vector3(...a),new T.Vector3(...b)];const line=new T.Line(new T.BufferGeometry().setFromPoints(pts),lineMat);line.userData.site=site;groups.dims.add(line);const vec=new T.Vector3().subVectors(pts[1],pts[0]).normalize(),side=new T.Vector3(-vec.z,0,vec.x).multiplyScalar(.12);for(const p of pts){const tick=new T.Line(new T.BufferGeometry().setFromPoints([p.clone().sub(side),p.clone().add(side)]),lineMat);tick.userData.site=site;groups.dims.add(tick);}addLabel(text,[(a[0]+b[0])/2,(a[1]+b[1])/2+.12,(a[2]+b[2])/2],site?'site-dim':'dimension');}
+ function dimension(a,b,text,site=false){const pts=[new T.Vector3(...a),new T.Vector3(...b)];const line=new T.Line(new T.BufferGeometry().setFromPoints(pts),lineMat);line.userData.site=site;groups.dims.add(line);const vec=new T.Vector3().subVectors(pts[1],pts[0]).normalize(),side=(Math.abs(vec.y)>.99?new T.Vector3(0,0,1):new T.Vector3(-vec.z,0,vec.x)).multiplyScalar(.12);for(const p of pts){const tick=new T.Line(new T.BufferGeometry().setFromPoints([p.clone().sub(side),p.clone().add(side)]),lineMat);tick.userData.site=site;groups.dims.add(tick);}addLabel(text,[(a[0]+b[0])/2,(a[1]+b[1])/2+.12,(a[2]+b[2])/2],site?'site-dim':'dimension');}
  dimension([-3.45,.05,-3.65],[3.45,.05,-3.65],'6,90 м');dimension([4.25,.05,-2.725],[4.25,.05,2.725],'5,45 м');
- dimension([4.25,.05,D/2],[4.25,.05,D/2+EXT],'2,30 м · прибудова');
- addLabel('<b>Прибудова · газоблок</b><span>6,90 × 2,30 м · зовнішній контур</span>',[0,.10,D/2+EXT/2],'room',1);
- addLabel('<b>Тераса</b><span>Соснова дошка · 14 см</span>',[0,LEVEL+.10,D/2+EXT/2],'room',2);
+ dimension([4.25,.05,D/2],[4.25,.05,D/2+EXT],'2,23 м · прибудова');
+ dimension([4.25,0,D/2+EXT],[4.25,TERRACE,D/2+EXT],'2,85 м · до підлоги тераси');
+ addLabel('<b>Прибудова · газоблок</b><span>6,90 × 2,23 м · висота 2,85 м</span>',[0,.10,D/2+EXT/2],'room',1);
+ addLabel('<b>Тераса</b><span>Соснова дошка · 14 см</span>',[0,TERRACE+.10,D/2+EXT/2],'room',2);
  dimension([-5.1,-.35,-6.25],[16.23,-.35,-6.25],'21,33 м',true);dimension([16.85,-.35,-5.3],[15.95,-.35,23.82],'29,12 м',true);dimension([-4.51,-.35,24.72],[15.31,-.35,24.62],'19,82 м',true);dimension([-5.95,-.35,-5.3],[-5.36,-.35,23.92],'29,22 м',true);
  for(const r of rooms)addLabel(`<b>${r.id} · ${r.floor===2?'Кімната':r.name}</b><span>${r.area} м²</span>`,[r.x-W/2,r.floor===1?.10:LEVEL+.10,r.z-D/2],'room',r.floor);
  addLabel('<b>Ділянка · 600 м²</b>',[5.3,-.20,11.0],'site');addLabel('Б · Вбиральня',[1.9,2.1,22.2],'site');addLabel('Проїзд',[7,-.20,-7.5],'site');
