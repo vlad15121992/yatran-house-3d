@@ -32,6 +32,16 @@ export const CHIMNEY_CASES=[{room:4,width:.73,depth:.23},{room:5,width:.68,depth
 export const CEILING_SLOPE=(UPPER_CEILING.high-UPPER_CEILING.low)/UPPER_PARTITION.roomWidth;
 export const CEILING_RIDGE=UPPER_CEILING.floor+UPPER_CEILING.high+CEILING_SLOPE*roomDividerThickness/2;
 export const ceilingAt=z=>CEILING_RIDGE-CEILING_SLOPE*Math.abs(z-D/2);
+// All exposed upstairs ties are horizontal, 240 cm clear above finished floor.
+// Sections and the two free positions in each small room remain estimated from photos.
+export const BEAM_CLEAR_HEIGHT=2.40;
+export const UPPER_BEAMS=[
+ ...[4,5].flatMap(room=>[.25+.14/2,1.15,2.65].map(x=>({room,x,width:.14,height:.20,
+  z0:room===4?UPPER_END_WALL:D/2+roomDividerThickness/2,
+  z1:room===4?D/2-roomDividerThickness/2:D-UPPER_END_WALL}))),
+ {room:3,x:5.65,width:.14,height:.20,z0:UPPER_END_WALL,z1:D-UPPER_END_WALL},
+ {room:3,x:W-.25-.16/2,width:.16,height:.16,z0:UPPER_END_WALL,z1:D-UPPER_END_WALL}
+];
 export const rooms=[
  {id:1,floor:1,name:'Гараж',area:'14,5',size:'2,92 × 4,95 м',x:1.71,z:2.725,h:2.15},
  {id:2,floor:1,name:'Кухня',area:'11,6',size:'Основна частина 3,12 × 3,23 м',x:5.08,z:3.15,h:KITCHEN_HEIGHT},
@@ -171,10 +181,13 @@ export function makeModel(scene){
  for(const [a,b,ya,yb] of [[UPPER_END_WALL,ridgeZ,ceilingAt(UPPER_END_WALL),CEILING_RIDGE],[ridgeZ,D-UPPER_END_WALL,CEILING_RIDGE,ceilingAt(D-UPPER_END_WALL)]]){
   const len=Math.hypot(b-a,yb-ya),angle=-Math.atan2(yb-ya,b-a);
   const panel=houseBox(groups.ceiling,W/2,(ya+yb)/2+.0175/Math.cos(angle),(a+b)/2,W-.25,.035,len,lining);panel.rotation.x=angle;
-  for(const x of [1.15,2.65,4.15,5.65]){const beam=houseBox(groups.ceiling,x,(ya+yb)/2-.13,(a+b)/2,.14,.20,len,timber);beam.rotation.x=angle;}
  }
- // Horizontal timber over the two arches, on the inside face of the gable. Section/height estimated from photo.
- houseBox(groups.ceiling,W-.34,5.03,D/2,.16,.16,D-2*UPPER_END_WALL,timber);
+ // Separate horizontal beams from the pitched lining, including flush end-wall ties.
+ for(const b of UPPER_BEAMS){
+  const beam=houseBox(groups.ceiling,b.x,UPPER_CEILING.floor+BEAM_CLEAR_HEIGHT+b.height/2,(b.z0+b.z1)/2,b.width,b.height,b.z1-b.z0,timber);
+  beam.name=`room-${b.room}-horizontal-beam`;
+  beam.userData.upperBeam={room:b.room,clearHeight:BEAM_CLEAR_HEIGHT};
+ }
  // Continue the internal timber partitions up to the roof-shaped ceiling.
  const partition=new T.Shape();partition.moveTo(UPPER_END_WALL,5.0);partition.lineTo(D-UPPER_END_WALL,5.0);partition.lineTo(ridgeZ,CEILING_RIDGE+.02);partition.closePath();
  const pg=new T.ExtrudeGeometry(partition,{depth:.23,bevelEnabled:false});pg.rotateY(-Math.PI/2);
