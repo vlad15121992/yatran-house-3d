@@ -33,15 +33,33 @@ export const CEILING_SLOPE=(UPPER_CEILING.high-UPPER_CEILING.low)/UPPER_PARTITIO
 export const CEILING_RIDGE=UPPER_CEILING.floor+UPPER_CEILING.high+CEILING_SLOPE*roomDividerThickness/2;
 export const ceilingAt=z=>CEILING_RIDGE-CEILING_SLOPE*Math.abs(z-D/2);
 // All exposed upstairs ties are horizontal, 240 cm clear above finished floor.
-// Sections and the two free positions in each small room remain estimated from photos.
+// Owner measured 10 x 10 cm; the two free positions remain estimated from photos.
 export const BEAM_CLEAR_HEIGHT=2.40;
+export const BEAM_SECTION=.10;
 export const UPPER_BEAMS=[
- ...[4,5].flatMap(room=>[.25+.14/2,1.15,2.65].map(x=>({room,x,width:.14,height:.20,
+ ...[4,5].flatMap(room=>[.25+BEAM_SECTION/2,1.15,2.65].map(x=>({room,x,width:BEAM_SECTION,height:BEAM_SECTION,
   z0:room===4?UPPER_END_WALL:D/2+roomDividerThickness/2,
   z1:room===4?D/2-roomDividerThickness/2:D-UPPER_END_WALL}))),
- {room:3,x:5.65,width:.14,height:.20,z0:UPPER_END_WALL,z1:D-UPPER_END_WALL},
- {room:3,x:W-.25-.16/2,width:.16,height:.16,z0:UPPER_END_WALL,z1:D-UPPER_END_WALL}
+ {room:3,x:5.65,width:BEAM_SECTION,height:BEAM_SECTION,z0:UPPER_END_WALL,z1:D-UPPER_END_WALL},
+ {room:3,x:W-.25-BEAM_SECTION/2,width:BEAM_SECTION,height:BEAM_SECTION,z0:UPPER_END_WALL,z1:D-UPPER_END_WALL}
 ];
+// Clip the rectangular tie against both ceiling slopes. 8 mm embed avoids seams
+// at the lining while keeping every vertex well below the exterior roof skin.
+export function beamProfile(b){
+ const bottom=UPPER_CEILING.floor+BEAM_CLEAR_HEIGHT,top=bottom+b.height;
+ let points=[[b.z0,bottom],[b.z1,bottom],[b.z1,top],[b.z0,top]];
+ for(const side of [-1,1]){
+  const distance=([z,y])=>y+side*CEILING_SLOPE*(z-D/2)-CEILING_RIDGE-.008;
+  const clipped=[];
+  for(let i=0;i<points.length;i++){
+   const a=points[i],c=points[(i+1)%points.length],da=distance(a),dc=distance(c);
+   if(da<=0)clipped.push(a);
+   if((da<=0)!==(dc<=0)){const t=da/(da-dc);clipped.push([a[0]+t*(c[0]-a[0]),a[1]+t*(c[1]-a[1])]);}
+  }
+  points=clipped;
+ }
+ return points;
+}
 export const rooms=[
  {id:1,floor:1,name:'Гараж',area:'14,5',size:'2,92 × 4,95 м',x:1.71,z:2.725,h:2.15},
  {id:2,floor:1,name:'Кухня',area:'11,6',size:'Основна частина 3,12 × 3,23 м',x:5.08,z:3.15,h:KITCHEN_HEIGHT},
@@ -184,7 +202,11 @@ export function makeModel(scene){
  }
  // Separate horizontal beams from the pitched lining, including flush end-wall ties.
  for(const b of UPPER_BEAMS){
-  const beam=houseBox(groups.ceiling,b.x,UPPER_CEILING.floor+BEAM_CLEAR_HEIGHT+b.height/2,(b.z0+b.z1)/2,b.width,b.height,b.z1-b.z0,timber);
+  const profile=beamProfile(b),shape=new T.Shape();
+  profile.forEach(([z,y],i)=>i?shape.lineTo(z,y):shape.moveTo(z,y));shape.closePath();
+  const geometry=new T.ExtrudeGeometry(shape,{depth:b.width,bevelEnabled:false});geometry.rotateY(-Math.PI/2);
+  const beam=new T.Mesh(geometry,timber);beam.position.set(b.x+b.width/2-W/2,0,-D/2);
+  beam.castShadow=true;beam.receiveShadow=true;groups.ceiling.add(beam);
   beam.name=`room-${b.room}-horizontal-beam`;
   beam.userData.upperBeam={room:b.room,clearHeight:BEAM_CLEAR_HEIGHT};
  }
