@@ -12,15 +12,15 @@ export function planSVG(mode){
   return `<svg viewBox="-90 -95 900 1120" role="img" aria-label="Схематичний план ділянки"><polygon points="0,850 640,850 612,0 18,-3" fill="#e5e7d9" stroke="${stroke}" stroke-width="3"/><rect x="50" y="627" width="207" height="163.5" fill="#ccc8bc" stroke="${stroke}" stroke-width="3"/><rect x="50" y="560.1" width="207" height="66.9" fill="#d4d7d0" stroke="#393b37" stroke-width="2"/>${text(153,600,'Прибудова',12)}${text(153,708,'А · Будинок',18)}<rect x="190" y="30" width="37.5" height="42" fill="#ccc8bc" stroke="${stroke}" stroke-width="2"/>${text(209,100,'Б',15)}${text(385,400,'600 м²',36)}${text(320,890,'21,33 м',18)}${text(315,-30,'19,82 м',18)}${text(-45,430,'29,22',16)}${text(687,430,'29,12',16)}<path d="M72 850h83m35 0h27" stroke="#faf9f5" stroke-width="8"/>${text(120,933,'Ворота',15)}${text(254,933,'Хвіртка',15)}${text(450,990,'Контур і відступи — схематично',14)}</svg>`;
  }
  if(mode==='second'){
- body=outer.replace('y="25" width="640" height="495"','y="23.5" width="640" height="498"')+wall(401,23.5,23,498)+wall(25,267,376,23)+opening(400,139,25,80)+opening(400,355,25,80)+window(190,521.5,114,23.5)+window(138,0,116,23.5)+window(665,316.5,25,140)+window(665,97.5,25,140)+opening(565,-2,75,29);
- body+=room(210,150,'5 · Кімната відпочинку','9,0')+room(210,400,'4 · Кімната відпочинку','8,6')+room(545,265,'3 · Кімната','10,6');
- body+=`<rect x="424" y="25" width="103" height="68" fill="#dfdace" stroke="#393b37" stroke-dasharray="7 4"/>`+text(475,56,'Отвір',11)+text(475,77,'103 × 68 см',10);
- body+=text(210,213,'3,76 × 2,42 м',13)+text(210,467,'3,76 × 2,30 м',13)+text(550,339,'h = 2,40 м',13);
+ body=outer.replace('y="25" width="640" height="495"','y="23.5" width="640" height="498"')+wall(405,23.5,23,498)+wall(25,259.5,380,26)+opening(404,152.5,25,80)+opening(404,309.5,25,80)+window(190,521.5,114,23.5)+window(138,0,116,23.5)+window(665,316.5,25,140)+window(665,97.5,25,140)+opening(565,-2,75,29);
+ body+=room(210,150,'5 · Кімната відпочинку','8,97')+room(210,400,'4 · Кімната відпочинку','8,97')+room(545,265,'3 · Кімната','10,6');
+ body+=`<rect x="428" y="25" width="103" height="68" fill="#dfdace" stroke="#393b37" stroke-dasharray="7 4"/>`+text(475,56,'Отвір',11)+text(475,77,'103 × 68 см',10);
+ body+=text(210,213,'3,80 × 2,36 м',13)+text(210,467,'3,80 × 2,36 м',13)+text(550,339,'h = 2,40 м',13);
  }else{
  body=outer+wall(317,25,33,495)+wall(466,348,20,172)+wall(466,338,199,20)+opening(523,336,90,24)+opening(50,518,243,29)+opening(508,518,126,29)+opening(663,383,29,110)+window(365,520,88,25)+window(665,141,25,110);
  body+=opening(555,-2,80,29)+text(592,48,'Прохід ≈ 80 см',11);
  body+=room(172,267,'1 · Гараж','14,5')+room(510,229,'2 · Кухня','11,6');body+=text(172,339,'2,92 × 4,95 м',13)+text(172,362,'h = 2,15 м',13)+text(516,281,'h = 2,20 м',13)+text(570,439,'Вхід',15);
- body+=`<rect x="424" y="25" width="103" height="68" fill="none" stroke="#8b8172" stroke-dasharray="5 4"/>`+text(475,65,'Отвір у стелі',10);
+ body+=`<rect x="428" y="25" width="103" height="68" fill="none" stroke="#8b8172" stroke-dasharray="5 4"/>`+text(475,65,'Отвір у стелі',10);
 
  }
  const extension=mode==='second'?`<rect x="0" y="-223" width="690" height="223" fill="#dedbd2" stroke="${stroke}" stroke-width="2"/>${text(345,-136,'ТЕРАСА НАД ПРИБУДОВОЮ',18)}${text(345,-100,'6,90 × 2,23 м · соснова дошка 14 см',14)}`:`<rect x="0" y="-223" width="690" height="223" fill="#d4d7d0" stroke="${stroke}" stroke-width="2"/><rect x="30" y="-193" width="630" height="193" fill="#fafaf5" stroke="${stroke}" stroke-width="2"/><rect x="328.5" y="-193" width="10" height="193" fill="#97bda9" stroke="${stroke}" stroke-width="2"/>${opening(327.5,-136.5,12,80)}${window(166,-223,50,30)}${window(660,-90,30,50)}${text(180,-130,'ТУАЛЕТ',17)}${text(180,-104,'Вікно 50 × 60 см',12)}${text(495,-130,'КУХНЯ · ПРИБУДОВА',15)}${text(495,-103,'Гіпсокартон · прохід ≈ 80 см',11)}${text(345,-245,'Вікно: 166 см від правого кута зовні',12)}`;

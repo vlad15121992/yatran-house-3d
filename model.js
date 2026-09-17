@@ -4,7 +4,7 @@ import {masonry,masonryUV,pine} from './masonry.js';
 // Metres. Front edge z=0; rear edge z=5.45; house centred in world space.
 export const W=6.90,D=5.45,LEVEL=2.60,EXT=2.23,TERRACE=2.85;
 // Owner dimensions: finished terrace top, and side window measured from brick junction/top.
-export const HATCH={x:4.24,z:4.52,width:1.03,depth:.68};
+export const HATCH={x:4.28,z:4.52,width:1.03,depth:.68};
 export const KITCHEN_HEIGHT=2.20;
 export const PASSAGE={a:5.55,b:6.35,height:2.05}; // 0.80 m wide; 0.30 m from right inner corner. Height estimated from photo.
 export const extensionWindow={a:D+.40,b:D+.90,low:TERRACE-.60-.60,high:TERRACE-.60};
@@ -17,12 +17,17 @@ export const GABLE={left:.74,gap:.79,right:.65,width:1.40,height:2.10,transom:1.
 export const UPPER_END_WALL=(D-(GABLE.left+2*GABLE.width+GABLE.gap+GABLE.right))/2;
 const firstArch=UPPER_END_WALL+GABLE.right;
 export const upperArches=[firstArch,firstArch+GABLE.width+GABLE.gap].map(a=>({a,b:a+GABLE.width,low:GABLE.sill,spring:GABLE.sill+1.80,high:GABLE.sill+GABLE.height,transom:GABLE.sill+GABLE.transom,arch:true}));
+// Left-to-right facing the pine partition from room 3. End piers adjusted +2 cm by owner.
+export const UPPER_PARTITION={x:4.165,thickness:.23,left:1.32,door:.80,gap:.77,right:1.29,roomLength:3.80,roomWidth:2.36};
+const doorA=UPPER_END_WALL+UPPER_PARTITION.left;
+export const upperDoors=[doorA,doorA+UPPER_PARTITION.door+UPPER_PARTITION.gap].map(a=>({a,b:a+UPPER_PARTITION.door,low:0,high:2.06}));
+const roomDividerThickness=D-2*UPPER_END_WALL-2*UPPER_PARTITION.roomWidth;
 export const rooms=[
  {id:1,floor:1,name:'Гараж',area:'14,5',size:'2,92 × 4,95 м',x:1.71,z:2.725,h:2.15},
  {id:2,floor:1,name:'Кухня',area:'11,6',size:'Основна частина 3,12 × 3,23 м',x:5.08,z:3.15,h:KITCHEN_HEIGHT},
  {id:3,floor:2,name:'Кімната відпочинку',area:'10,6',size:'Стіна з вікнами 4,98 м · вікна 140 × 210 см',x:5.445,z:2.725,h:2.4},
- {id:4,floor:2,name:'Кімната відпочинку',area:'8,6',size:'3,76 × 2,30 м',x:2.13,z:1.40,h:2.4},
- {id:5,floor:2,name:'Кімната відпочинку',area:'9,0',size:'3,76 × 2,42 м',x:2.13,z:3.99,h:2.4},
+ {id:4,floor:2,name:'Кімната відпочинку',area:'8,97',size:'3,80 × 2,36 м · за обміром',x:2.15,z:1.415,h:2.4},
+ {id:5,floor:2,name:'Кімната відпочинку',area:'8,97',size:'3,80 × 2,36 м · за обміром',x:2.15,z:4.035,h:2.4},
  {id:6,floor:1,name:'Кухня · прибудова',area:null,extension:true,size:'Гіпсокартонна перегородка з проходом до туалету',x:5.0,z:6.42,h:2.62},
  {id:7,floor:1,name:'Туалет · прибудова',area:null,extension:true,size:'Вікно 50 × 60 см · чорна рама',x:1.8,z:6.42,h:2.62}
 
@@ -129,8 +134,8 @@ export function makeModel(scene){
  wallRun(groups.second,'x',D-UPPER_END_WALL/2,0,W,LEVEL,2.4,UPPER_END_WALL,[win(1.38,2.54),{a:5.65,b:6.40,low:0,high:2.1}]);
  wallRun(groups.second,'z',.125,UPPER_END_WALL,D-UPPER_END_WALL,LEVEL,2.4,.25);
  sideFacade(groups.second,LEVEL,upperArches,UPPER_END_WALL);upperArches.forEach(o=>archDetail(groups.second,o,LEVEL,true));
- wallRun(groups.second,'z',4.125,UPPER_END_WALL,D-UPPER_END_WALL,LEVEL,2.4,.23,[{a:1.39,b:2.19,low:0,high:2.06},{a:3.55,b:4.35,low:0,high:2.06}],lining);
- wallRun(groups.second,'x',2.665,.25,4.01,LEVEL,2.4,.23,[],lining);
+ wallRun(groups.second,'z',UPPER_PARTITION.x,UPPER_END_WALL,D-UPPER_END_WALL,LEVEL,2.4,UPPER_PARTITION.thickness,upperDoors,lining);
+ wallRun(groups.second,'x',D/2,.25,.25+UPPER_PARTITION.roomLength,LEVEL,2.4,roomDividerThickness,[],lining);
  window(groups.second,'x',UPPER_END_WALL/2,1.9,3.04,LEVEL);window(groups.second,'x',D-UPPER_END_WALL/2,1.38,2.54,LEVEL);
  // Upper doorway faces the terrace. Existing house floor datum remains provisional.
  // First-floor stairs removed at owner request. Existing upper opening remains.
@@ -148,8 +153,8 @@ export function makeModel(scene){
  // Continue the internal timber partitions up to the roof-shaped ceiling.
  const partition=new T.Shape();partition.moveTo(UPPER_END_WALL,5.0);partition.lineTo(D-UPPER_END_WALL,5.0);partition.lineTo(ridgeZ,5.68);partition.closePath();
  const pg=new T.ExtrudeGeometry(partition,{depth:.23,bevelEnabled:false});pg.rotateY(-Math.PI/2);
- const pm=new T.Mesh(pg,lining);pm.position.set(4.24-W/2,0,-D/2);masonryUV(pm);groups.ceiling.add(pm);
- houseBox(groups.ceiling,2.13,5.32,2.665,3.76,.64,.23,lining);
+ const pm=new T.Mesh(pg,lining);pm.position.set(4.28-W/2,0,-D/2);masonryUV(pm);groups.ceiling.add(pm);
+ houseBox(groups.ceiling,2.15,5.32,D/2,UPPER_PARTITION.roomLength,.64,roomDividerThickness,lining);
  const tri=new T.Shape();tri.moveTo(0,roofY);tri.lineTo(D,roofY);tri.lineTo(ridgeZ,ridge);tri.closePath();
  const vent=new T.Path();vent.absellipse(ridgeZ,5.42,.105,.105,0,Math.PI*2);tri.holes.push(vent);
  for(const x of [.16,W]){const geo=new T.ExtrudeGeometry(tri,{depth:.16,bevelEnabled:false});geo.rotateY(-Math.PI/2);const m=new T.Mesh(geo,wall);m.position.set(x-W/2,0,-D/2);masonryUV(m);m.castShadow=true;groups.gables.add(m);}

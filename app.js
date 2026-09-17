@@ -1,7 +1,7 @@
 import * as T from 'three';
 import {OrbitControls} from './vendor/OrbitControls.js';
-import {makeModel,rooms,W,D,LEVEL} from './model.js?v=arches1';
-import {planSVG} from './plans.js?v=arches1';
+import {makeModel,rooms,W,D,LEVEL} from './model.js?v=partition2';
+import {planSVG} from './plans.js?v=partition2';
 
 const $=id=>document.getElementById(id),canvas=$('scene');
 const scene=new T.Scene();scene.background=new T.Color('#f6f4ef');const reducedMotion=matchMedia('(prefers-reduced-motion: reduce)').matches;
