@@ -25,13 +25,19 @@ export const upperArches=[firstArch,firstArch+GABLE.width+GABLE.gap].map(a=>({a,
 export const UPPER_PARTITION={x:4.165,thickness:.23,left:1.32,door:.80,gap:.77,right:1.29,roomLength:3.80,roomWidth:2.36};
 const doorA=UPPER_END_WALL+UPPER_PARTITION.left;
 export const upperDoors=[doorA,doorA+UPPER_PARTITION.door+UPPER_PARTITION.gap].map(a=>({a,b:a+UPPER_PARTITION.door,low:0,high:2.06}));
-const roomDividerThickness=D-2*UPPER_END_WALL-2*UPPER_PARTITION.roomWidth;
+export const roomDividerThickness=D-2*UPPER_END_WALL-2*UPPER_PARTITION.roomWidth;
+export const UPPER_CEILING={floor:LEVEL+.024,low:2.35,high:3.10};
+export const ROOM_WINDOWS=[{a:1.895,b:3.045,low:.85,high:2.10},{a:1.385,b:2.535,low:.85,high:2.10}];
+export const CHIMNEY_CASES=[{room:4,width:.73,depth:.23},{room:5,width:.68,depth:.26}];
+export const CEILING_SLOPE=(UPPER_CEILING.high-UPPER_CEILING.low)/UPPER_PARTITION.roomWidth;
+export const CEILING_RIDGE=UPPER_CEILING.floor+UPPER_CEILING.high+CEILING_SLOPE*roomDividerThickness/2;
+export const ceilingAt=z=>CEILING_RIDGE-CEILING_SLOPE*Math.abs(z-D/2);
 export const rooms=[
  {id:1,floor:1,name:'Гараж',area:'14,5',size:'2,92 × 4,95 м',x:1.71,z:2.725,h:2.15},
  {id:2,floor:1,name:'Кухня',area:'11,6',size:'Основна частина 3,12 × 3,23 м',x:5.08,z:3.15,h:KITCHEN_HEIGHT},
  {id:3,floor:2,name:'Кімната відпочинку',area:'10,6',size:'Стіна з вікнами 4,98 м · вікна 140 × 210 см',x:5.445,z:2.725,h:2.4},
- {id:4,floor:2,name:'Кімната відпочинку',area:'8,97',size:'3,80 × 2,36 м · за обміром',x:2.15,z:1.415,h:2.4},
- {id:5,floor:2,name:'Кімната відпочинку',area:'8,97',size:'3,80 × 2,36 м · за обміром',x:2.15,z:4.035,h:2.4},
+ {id:4,floor:2,name:'Кімната відпочинку',area:'8,97',size:'3,80 × 2,36 м · стеля 2,35–3,10 м',x:2.15,z:1.415,h:2.4},
+ {id:5,floor:2,name:'Кімната відпочинку',area:'8,97',size:'3,80 × 2,36 м · стеля 2,35–3,10 м',x:2.15,z:4.035,h:2.4},
  {id:6,floor:1,name:'Кухня · прибудова',area:null,extension:true,size:'Гіпсокартонна перегородка з проходом до туалету',x:5.0,z:6.42,h:2.62},
  {id:7,floor:1,name:'Туалет · прибудова',area:null,extension:true,size:'Вікно 50 × 60 см · чорна рама',x:1.8,z:6.42,h:2.62}
 
@@ -148,37 +154,57 @@ export function makeModel(scene){
  houseBox(groups.second,W/2,2.475,D-.12,W,.25,.26,wall);
  houseBox(groups.second,.12,2.475,D/2,.26,.25,D,wall);
  houseBox(groups.second,W-.12,2.475,D/2,.26,.25,D,wall);
- wallRun(groups.second,'x',UPPER_END_WALL/2,0,W,LEVEL,2.4,UPPER_END_WALL,[win(1.9,3.04)]);
- wallRun(groups.second,'x',D-UPPER_END_WALL/2,0,W,LEVEL,2.4,UPPER_END_WALL,[win(1.38,2.54),{a:5.65,b:6.40,low:0,high:2.1}]);
+ wallRun(groups.second,'x',UPPER_END_WALL/2,0,W,LEVEL,2.4,UPPER_END_WALL,[ROOM_WINDOWS[0]]);
+ wallRun(groups.second,'x',D-UPPER_END_WALL/2,0,W,LEVEL,2.4,UPPER_END_WALL,[ROOM_WINDOWS[1],{a:5.65,b:6.40,low:0,high:2.1}]);
  wallRun(groups.second,'z',.125,UPPER_END_WALL,D-UPPER_END_WALL,LEVEL,2.4,.25);
  sideFacade(groups.second,LEVEL,upperArches,UPPER_END_WALL);upperArches.forEach(o=>archDetail(groups.second,o,LEVEL,true));
  wallRun(groups.second,'z',UPPER_PARTITION.x,UPPER_END_WALL,D-UPPER_END_WALL,LEVEL,2.4,UPPER_PARTITION.thickness,upperDoors,lining);
  wallRun(groups.second,'x',D/2,.25,.25+UPPER_PARTITION.roomLength,LEVEL,2.4,roomDividerThickness,[],lining);
- window(groups.second,'x',UPPER_END_WALL/2,1.9,3.04,LEVEL);window(groups.second,'x',D-UPPER_END_WALL/2,1.38,2.54,LEVEL);
+ for(const [i,z] of [UPPER_END_WALL/2,D-UPPER_END_WALL/2].entries()){const w=ROOM_WINDOWS[i];window(groups.second,'x',z,w.a,w.b,LEVEL,w.low,w.high);}
  // Upper doorway faces the terrace. Existing house floor datum remains provisional.
  // First-floor stairs removed at owner request. Existing upper opening remains.
  // Photo shows gable at the 5.45 m end: ridge runs along the 6.90 m axis.
- // Both roof pitches are visual estimates, not survey measurements.
- const roofY=5.02,ridge=5.83,ridgeZ=2.55;
+ // Both small rooms: measured 235 cm at the eave and 310 cm at the divider, above finished boards.
+ const ridgeZ=D/2,roofY=5.0,ridge=CEILING_RIDGE+.15;
+ const roofAt=z=>ceilingAt(z)+.15;
  // Pine-lined ceiling follows both slopes; exposed beams remain below the lining.
- for(const [a,b,ya,yb] of [[UPPER_END_WALL,ridgeZ,5.01,5.69],[ridgeZ,D-UPPER_END_WALL,5.69,5.01]]){
+ for(const [a,b,ya,yb] of [[UPPER_END_WALL,ridgeZ,ceilingAt(UPPER_END_WALL),CEILING_RIDGE],[ridgeZ,D-UPPER_END_WALL,CEILING_RIDGE,ceilingAt(D-UPPER_END_WALL)]]){
   const len=Math.hypot(b-a,yb-ya),angle=-Math.atan2(yb-ya,b-a);
-  const panel=houseBox(groups.ceiling,W/2,(ya+yb)/2,(a+b)/2,W-.25,.035,len,lining);panel.rotation.x=angle;
+  const panel=houseBox(groups.ceiling,W/2,(ya+yb)/2+.0175/Math.cos(angle),(a+b)/2,W-.25,.035,len,lining);panel.rotation.x=angle;
   for(const x of [1.15,2.65,4.15,5.65]){const beam=houseBox(groups.ceiling,x,(ya+yb)/2-.13,(a+b)/2,.14,.20,len,timber);beam.rotation.x=angle;}
  }
  // Horizontal timber over the two arches, on the inside face of the gable. Section/height estimated from photo.
  houseBox(groups.ceiling,W-.34,5.03,D/2,.16,.16,D-2*UPPER_END_WALL,timber);
  // Continue the internal timber partitions up to the roof-shaped ceiling.
- const partition=new T.Shape();partition.moveTo(UPPER_END_WALL,5.0);partition.lineTo(D-UPPER_END_WALL,5.0);partition.lineTo(ridgeZ,5.68);partition.closePath();
+ const partition=new T.Shape();partition.moveTo(UPPER_END_WALL,5.0);partition.lineTo(D-UPPER_END_WALL,5.0);partition.lineTo(ridgeZ,CEILING_RIDGE+.02);partition.closePath();
  const pg=new T.ExtrudeGeometry(partition,{depth:.23,bevelEnabled:false});pg.rotateY(-Math.PI/2);
  const pm=new T.Mesh(pg,lining);pm.position.set(4.28-W/2,0,-D/2);masonryUV(pm);groups.ceiling.add(pm);
- houseBox(groups.ceiling,2.15,5.32,D/2,UPPER_PARTITION.roomLength,.64,roomDividerThickness,lining);
- const tri=new T.Shape();tri.moveTo(0,roofY);tri.lineTo(D,roofY);tri.lineTo(ridgeZ,ridge);tri.closePath();
+ houseBox(groups.ceiling,2.15,(5.0+CEILING_RIDGE)/2,D/2,UPPER_PARTITION.roomLength,CEILING_RIDGE-5.0,roomDividerThickness,lining);
+ // Sloped-top solids keep the chimney and its wall lining continuous to the ceiling/roof.
+ function pitchedPrism(g,x0,x1,z0,z1,bottom,material,topAt){
+  const shape=new T.Shape();shape.moveTo(z0,bottom);shape.lineTo(z1,bottom);shape.lineTo(z1,topAt(z1));if(z0<ridgeZ&&z1>ridgeZ)shape.lineTo(ridgeZ,topAt(ridgeZ));shape.lineTo(z0,topAt(z0));shape.closePath();
+  const geo=new T.ExtrudeGeometry(shape,{depth:x1-x0,bevelEnabled:false});geo.rotateY(-Math.PI/2);const mesh=new T.Mesh(geo,material);mesh.position.set(x1-W/2,0,-D/2);masonryUV(mesh);mesh.userData.prism={x0,x1,z0,z1,bottom,top:Math.min(topAt(z0),topAt(z1))};mesh.castShadow=true;mesh.receiveShadow=true;g.add(mesh);return mesh;
+ }
+ // Extend the existing 44 × 46 cm masonry through the floor and up to the black metal roof.
+ houseBox(groups.first,f.wallX+f.topDepth/2,(f.height+LEVEL)/2,fireMid,f.topDepth,LEVEL-f.height,f.topWidth,fireBrick);
+ pitchedPrism(groups.second,f.wallX,f.wallX+f.topDepth,fireMid-f.topWidth/2,fireMid+f.topWidth/2,LEVEL,fireBrick,roofAt);
+ const liningJoint=mat('#705530',{clippingPlanes:[clip],clipShadows:true});
+ for(const c of CHIMNEY_CASES){
+  const x1=UPPER_PARTITION.x-UPPER_PARTITION.thickness/2,x0=x1-c.width;
+  const face=D/2+(c.room===4?-1:1)*roomDividerThickness/2;
+  const z0=c.room===4?face-c.depth:face,z1=c.room===4?face:face+c.depth,t=.016;
+  pitchedPrism(groups.second,x0,x0+t,z0,z1,UPPER_CEILING.floor,lining,ceilingAt);
+  pitchedPrism(groups.second,x1-t,x1,z0,z1,UPPER_CEILING.floor,lining,ceilingAt);
+  pitchedPrism(groups.second,x0,x1,c.room===4?z0:z1-t,c.room===4?z0+t:z1,UPPER_CEILING.floor,lining,ceilingAt);
+  const edge=c.room===4?z0:z1,edgeTop=ceilingAt(edge);
+  houseBox(groups.second,x0,(UPPER_CEILING.floor+edgeTop)/2,edge,.004,edgeTop-UPPER_CEILING.floor,.004,liningJoint);
+ }
+ const tri=new T.Shape();tri.moveTo(0,roofY);tri.lineTo(D,roofY);tri.lineTo(D,roofAt(D));tri.lineTo(ridgeZ,ridge);tri.lineTo(0,roofAt(0));tri.closePath();
  const vent=new T.Path();vent.absellipse(ridgeZ,5.42,.105,.105,0,Math.PI*2);tri.holes.push(vent);
  for(const x of [.16,W]){const geo=new T.ExtrudeGeometry(tri,{depth:.16,bevelEnabled:false});geo.rotateY(-Math.PI/2);const m=new T.Mesh(geo,wall);m.position.set(x-W/2,0,-D/2);masonryUV(m);m.castShadow=true;groups.gables.add(m);}
  const ventRing=new T.Mesh(new T.TorusGeometry(.12,.026,8,28),mat('#8a9290'));ventRing.rotation.y=Math.PI/2;ventRing.position.set(W/2+.02,5.42,ridgeZ-D/2);groups.roof.add(ventRing);
  const flue=new T.Mesh(new T.CylinderGeometry(.065,.065,3.35,12),sheet);flue.position.set(W/2+.09,3.28,-D/2+.03);groups.roof.add(flue);
- for(const [a,b,ya,yb] of [[-.13,ridgeZ,4.98,ridge],[ridgeZ,D+.13,ridge,4.98]]){
+ for(const [a,b,ya,yb] of [[-.13,ridgeZ,roofAt(-.13),ridge],[ridgeZ,D+.13,ridge,roofAt(D+.13)]]){
   const dz=b-a,dy=yb-ya,len=Math.hypot(dz,dy),angle=-Math.atan2(dy,dz);
   const r=houseBox(groups.roof,W/2,(ya+yb)/2+.04,(a+b)/2,W+.22,.065,len,sheet);r.rotation.x=angle;
   for(let x=-.08;x<W+.12;x+=.14){const corrugation=houseBox(groups.roof,x,(ya+yb)/2+.075,(a+b)/2,.038,.026,len,sheet);corrugation.rotation.x=angle;}
@@ -248,6 +274,9 @@ export function makeModel(scene){
   if(height>10)return;
   const group=groups[active];if(!group)return;
   group.traverse(o=>{if(!o.isMesh||!o.visible)return;
+   if(o.userData.prism){
+    const p=o.userData.prism;if(height>p.bottom&&height<p.top){const cap=new T.Mesh(new T.PlaneGeometry(p.x1-p.x0,p.z1-p.z0),capMat);cap.rotation.x=-Math.PI/2;cap.position.set((p.x0+p.x1)/2-W/2,height+.002,(p.z0+p.z1)/2-D/2);caps.add(cap);}return;
+   }
    if(o.userData.fireplace){
     if(height<=0||height>=f.baseHeight)return;
     const half=height>.36&&height<1.22?(height<=1.04?.36:.36*Math.sqrt(1-((height-1.04)/.18)**2)):0;

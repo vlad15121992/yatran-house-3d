@@ -1,7 +1,7 @@
 import * as T from 'three';
 import {OrbitControls} from './vendor/OrbitControls.js';
-import {makeModel,rooms,W,D,LEVEL} from './model.js?v=fireplace1';
-import {planSVG} from './plans.js?v=fireplace1';
+import {makeModel,rooms,W,D,LEVEL} from './model.js?v=chimney1';
+import {planSVG} from './plans.js?v=chimney1';
 
 const $=id=>document.getElementById(id),canvas=$('scene');
 const scene=new T.Scene();scene.background=new T.Color('#f6f4ef');const reducedMotion=matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -49,7 +49,7 @@ function focusRoom(id){
  const r=rooms.find(r=>r.id===id);if(!r)return;
  setView(r.floor===1?'first':'second');selected=id;enterInside();canvas.focus({preventScroll:true});
  // Eye-level viewpoints in clear floor space, away from walls and the upper floor opening.
- const views={1:[1.71,4.30,1.71,1.1],2:[5.90,2.67,3.70,2.67],3:[4.40,2.725,6.65,2.725],4:[1.1,1.75,3.4,1.1],5:[1.1,4.5,3.4,3.4],6:[5.9,6.415,3.3,6.415],7:[2.65,6.05,1.7,7.3]};
+ const views={1:[1.71,4.30,1.71,1.1],2:[5.90,2.67,3.70,2.67],3:[4.40,2.725,6.65,2.725],4:[1.3,1.20,4.05,2.12],5:[1.3,4.25,4.05,3.38],6:[5.9,6.415,3.3,6.415],7:[2.65,6.05,1.7,7.3]};
  const [x,z,tx,tz]=views[id],y=(r.floor===2?LEVEL:0)+1.60;
  fly([W/2-x,y,z-D/2],[W/2-tx,id===2?1.15:y,tz-D/2]);
  $('room-info').hidden=false;$('room-info').innerHTML=`<b>${r.extension?r.name:r.id+' · '+r.name+' · '+r.area+' м²'}</b>${r.size}<br><small>Камера всередині · висота погляду 1,60 м</small>`;
@@ -96,5 +96,3 @@ function animate(now){requestAnimationFrame(animate);if(tween){const t=Math.min(
  for(const l of labelEntries){const show=!plan&&((l.kind==='dimension'&&$('dimensions').checked)||(l.kind==='site-dim'&&$('dimensions').checked&&current==='site')||(l.kind==='site'&&current==='site')||(l.kind==='room'&&$('cut').checked&&((current==='first'&&l.floor===1)||(current==='second'&&l.floor===2))));l.el.hidden=!show;if(show){const p=l.point.clone().project(camera);l.el.hidden=p.z>1||p.z< -1||Math.abs(p.x)>1||Math.abs(p.y)>1;l.el.style.left=`${(p.x*.5+.5)*width}px`;l.el.style.top=`${(-p.y*.5+.5)*height}px`;}}
 }
 apply();resize();defaultCamera();requestAnimationFrame(animate);$('loading').hidden=true;if(innerWidth<700)$('hint').textContent='Один палець — обертання · Два — масштаб';
-
-
