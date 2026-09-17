@@ -12,10 +12,15 @@ export const extensionWindow={a:D+.40,b:D+.90,low:TERRACE-.60-.60,high:TERRACE-.
 export const PARTITION={x:3.335,thickness:.10,doorWidth:.80,doorHeight:2.05};
 // Rear elevation: right external corner is local x=0 after the model mirror.
 export const toiletWindow={a:1.66,b:2.16,low:TERRACE-.60-.60,high:TERRACE-.60}; // Owner confirmed same height as the side window.
+// Measurements read left-to-right from INSIDE room 3, facing the arched windows.
+export const GABLE={left:.74,gap:.79,right:.65,width:1.40,height:2.10,transom:1.70,sill:.18};
+export const UPPER_END_WALL=(D-(GABLE.left+2*GABLE.width+GABLE.gap+GABLE.right))/2;
+const firstArch=UPPER_END_WALL+GABLE.right;
+export const upperArches=[firstArch,firstArch+GABLE.width+GABLE.gap].map(a=>({a,b:a+GABLE.width,low:GABLE.sill,spring:GABLE.sill+1.80,high:GABLE.sill+GABLE.height,transom:GABLE.sill+GABLE.transom,arch:true}));
 export const rooms=[
  {id:1,floor:1,name:'Гараж',area:'14,5',size:'2,92 × 4,95 м',x:1.71,z:2.725,h:2.15},
  {id:2,floor:1,name:'Кухня',area:'11,6',size:'Основна частина 3,12 × 3,23 м',x:5.08,z:3.15,h:KITCHEN_HEIGHT},
- {id:3,floor:2,name:'Кімната відпочинку',area:'10,6',size:'2,41 × 4,95 м, з отвором у підлозі',x:5.445,z:2.725,h:2.4},
+ {id:3,floor:2,name:'Кімната відпочинку',area:'10,6',size:'Стіна з вікнами 4,98 м · вікна 140 × 210 см',x:5.445,z:2.725,h:2.4},
  {id:4,floor:2,name:'Кімната відпочинку',area:'8,6',size:'3,76 × 2,30 м',x:2.13,z:1.40,h:2.4},
  {id:5,floor:2,name:'Кімната відпочинку',area:'9,0',size:'3,76 × 2,42 м',x:2.13,z:3.99,h:2.4},
  {id:6,floor:1,name:'Кухня · прибудова',area:null,extension:true,size:'Гіпсокартонна перегородка з проходом до туалету',x:5.0,z:6.42,h:2.62},
@@ -54,11 +59,11 @@ export function makeModel(scene){
  }
  const win=(a,b,low=.85,high=2.05)=>({a,b,low,high});
  function archPath(path,a,b,low,spring,high){path.moveTo(a,low);path.lineTo(b,low);path.lineTo(b,spring);path.absellipse((a+b)/2,spring,(b-a)/2,high-spring,0,Math.PI,false);path.lineTo(a,low);path.closePath();}
- function sideFacade(g,level,openings){
-  const shape=new T.Shape();shape.moveTo(.25,0);shape.lineTo(D-.25,0);shape.lineTo(D-.25,2.4);shape.lineTo(.25,2.4);shape.closePath();
+ function sideFacade(g,level,openings,inset=.25){
+  const shape=new T.Shape();shape.moveTo(inset,0);shape.lineTo(D-inset,0);shape.lineTo(D-inset,2.4);shape.lineTo(inset,2.4);shape.closePath();
   for(const o of openings){const hole=new T.Path();if(o.arch)archPath(hole,o.a,o.b,o.low,o.spring,o.high);else{hole.moveTo(o.a,o.low);hole.lineTo(o.b,o.low);hole.lineTo(o.b,o.high);hole.lineTo(o.a,o.high);hole.closePath();}shape.holes.push(hole);}
   const geo=new T.ExtrudeGeometry(shape,{depth:.25,bevelEnabled:false,curveSegments:24});geo.rotateY(-Math.PI/2);
-  const mesh=new T.Mesh(geo,wall);mesh.position.set(W/2,level,-D/2);mesh.userData.sideOpenings=openings;masonryUV(mesh);mesh.castShadow=true;mesh.receiveShadow=true;g.add(mesh);
+  const mesh=new T.Mesh(geo,wall);mesh.position.set(W/2,level,-D/2);mesh.userData.sideOpenings=openings;mesh.userData.sideInset=inset;masonryUV(mesh);mesh.castShadow=true;mesh.receiveShadow=true;g.add(mesh);
  }
  function archDetail(g,o,level,glazed){
   const cx=W/2+.018,mid=(o.a+o.b)/2-D/2,rx=(o.b-o.a)/2,ry=o.high-o.spring;
@@ -69,6 +74,7 @@ export function makeModel(scene){
    const curved=new T.Mesh(new T.TubeGeometry(new T.CatmullRomCurve3(points),40,.032,6,false),frame);g.add(curved);
    for(const z of [o.a+.025,o.b-.025])houseBox(g,W-.015,level+(o.low+o.spring)/2,z,.09,o.spring-o.low,.055,frame);
    for(const y of [o.low+.025])houseBox(g,W-.015,level+y,(o.a+o.b)/2,.09,.055,o.b-o.a,frame);
+   if(o.transom!==undefined)houseBox(g,W-.015,level+o.transom,(o.a+o.b)/2,.09,.055,o.b-o.a,frame);
 
   }
   const archBrick=mat('#a5684e',{clippingPlanes:[clip],clipShadows:true});
@@ -119,27 +125,28 @@ export function makeModel(scene){
  houseBox(groups.second,W/2,2.475,D-.12,W,.25,.26,wall);
  houseBox(groups.second,.12,2.475,D/2,.26,.25,D,wall);
  houseBox(groups.second,W-.12,2.475,D/2,.26,.25,D,wall);
- wallRun(groups.second,'x',.125,0,W,LEVEL,2.4,.25,[win(1.9,3.04)]);
- wallRun(groups.second,'x',5.325,0,W,LEVEL,2.4,.25,[win(1.38,2.54),{a:5.65,b:6.40,low:0,high:2.1}]);
- wallRun(groups.second,'z',.125,.25,5.2,LEVEL,2.4,.25);
- const upperArches=[{a:.57,b:2.04,low:.18,spring:1.92,high:2.27,arch:true},{a:2.94,b:4.41,low:.18,spring:1.92,high:2.27,arch:true}];
- sideFacade(groups.second,LEVEL,upperArches);upperArches.forEach(o=>archDetail(groups.second,o,LEVEL,true));
- wallRun(groups.second,'z',4.125,.25,5.2,LEVEL,2.4,.23,[{a:1.39,b:2.19,low:0,high:2.06},{a:3.55,b:4.35,low:0,high:2.06}],lining);
+ wallRun(groups.second,'x',UPPER_END_WALL/2,0,W,LEVEL,2.4,UPPER_END_WALL,[win(1.9,3.04)]);
+ wallRun(groups.second,'x',D-UPPER_END_WALL/2,0,W,LEVEL,2.4,UPPER_END_WALL,[win(1.38,2.54),{a:5.65,b:6.40,low:0,high:2.1}]);
+ wallRun(groups.second,'z',.125,UPPER_END_WALL,D-UPPER_END_WALL,LEVEL,2.4,.25);
+ sideFacade(groups.second,LEVEL,upperArches,UPPER_END_WALL);upperArches.forEach(o=>archDetail(groups.second,o,LEVEL,true));
+ wallRun(groups.second,'z',4.125,UPPER_END_WALL,D-UPPER_END_WALL,LEVEL,2.4,.23,[{a:1.39,b:2.19,low:0,high:2.06},{a:3.55,b:4.35,low:0,high:2.06}],lining);
  wallRun(groups.second,'x',2.665,.25,4.01,LEVEL,2.4,.23,[],lining);
- window(groups.second,'x',.125,1.9,3.04,LEVEL);window(groups.second,'x',5.325,1.38,2.54,LEVEL);
+ window(groups.second,'x',UPPER_END_WALL/2,1.9,3.04,LEVEL);window(groups.second,'x',D-UPPER_END_WALL/2,1.38,2.54,LEVEL);
  // Upper doorway faces the terrace. Existing house floor datum remains provisional.
  // First-floor stairs removed at owner request. Existing upper opening remains.
  // Photo shows gable at the 5.45 m end: ridge runs along the 6.90 m axis.
  // Both roof pitches are visual estimates, not survey measurements.
  const roofY=5.02,ridge=5.83,ridgeZ=2.55;
  // Pine-lined ceiling follows both slopes; exposed beams remain below the lining.
- for(const [a,b,ya,yb] of [[.25,ridgeZ,5.01,5.69],[ridgeZ,D-.25,5.69,5.01]]){
+ for(const [a,b,ya,yb] of [[UPPER_END_WALL,ridgeZ,5.01,5.69],[ridgeZ,D-UPPER_END_WALL,5.69,5.01]]){
   const len=Math.hypot(b-a,yb-ya),angle=-Math.atan2(yb-ya,b-a);
   const panel=houseBox(groups.ceiling,W/2,(ya+yb)/2,(a+b)/2,W-.25,.035,len,lining);panel.rotation.x=angle;
   for(const x of [1.15,2.65,4.15,5.65]){const beam=houseBox(groups.ceiling,x,(ya+yb)/2-.13,(a+b)/2,.14,.20,len,timber);beam.rotation.x=angle;}
  }
+ // Horizontal timber over the two arches, on the inside face of the gable. Section/height estimated from photo.
+ houseBox(groups.ceiling,W-.34,5.03,D/2,.16,.16,D-2*UPPER_END_WALL,timber);
  // Continue the internal timber partitions up to the roof-shaped ceiling.
- const partition=new T.Shape();partition.moveTo(.25,5.0);partition.lineTo(D-.25,5.0);partition.lineTo(ridgeZ,5.68);partition.closePath();
+ const partition=new T.Shape();partition.moveTo(UPPER_END_WALL,5.0);partition.lineTo(D-UPPER_END_WALL,5.0);partition.lineTo(ridgeZ,5.68);partition.closePath();
  const pg=new T.ExtrudeGeometry(partition,{depth:.23,bevelEnabled:false});pg.rotateY(-Math.PI/2);
  const pm=new T.Mesh(pg,lining);pm.position.set(4.24-W/2,0,-D/2);masonryUV(pm);groups.ceiling.add(pm);
  houseBox(groups.ceiling,2.13,5.32,2.665,3.76,.64,.23,lining);
@@ -221,7 +228,7 @@ export function makeModel(scene){
    if(o.userData.sideOpenings){
     const y=height-o.position.y;if(y<=0||y>=2.4)return;
     const intervals=o.userData.sideOpenings.filter(a=>y>a.low&&y<a.high).map(a=>{let half=(a.b-a.a)/2;if(a.arch&&y>a.spring)half*=Math.sqrt(1-Math.pow((y-a.spring)/(a.high-a.spring),2));return [(a.a+a.b)/2-half,(a.a+a.b)/2+half];});
-    const cuts=[.25,D-.25,...intervals.flat()].sort((a,b)=>a-b);
+    const inset=o.userData.sideInset??.25;const cuts=[inset,D-inset,...intervals.flat()].sort((a,b)=>a-b);
     for(let i=0;i<cuts.length-1;i++){const a=cuts[i],b=cuts[i+1];if(intervals.some(v=>(a+b)/2>v[0]&&(a+b)/2<v[1]))continue;const cap=new T.Mesh(new T.PlaneGeometry(.25,b-a),capMat);cap.rotation.x=-Math.PI/2;cap.position.set(W/2-.125,height+.002,(a+b)/2-D/2);caps.add(cap);}return;
    }
    if(o.geometry.type!=='BoxGeometry')return;const {width,height:h,depth}=o.geometry.parameters;const min=o.position.y-h/2,max=o.position.y+h/2;

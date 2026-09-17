@@ -1,7 +1,7 @@
 import * as T from 'three';
 import {OrbitControls} from './vendor/OrbitControls.js';
-import {makeModel,rooms,W,D,LEVEL} from './model.js?v=toilet1';
-import {planSVG} from './plans.js?v=toilet1';
+import {makeModel,rooms,W,D,LEVEL} from './model.js?v=arches1';
+import {planSVG} from './plans.js?v=arches1';
 
 const $=id=>document.getElementById(id),canvas=$('scene');
 const scene=new T.Scene();scene.background=new T.Color('#f6f4ef');const reducedMotion=matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -49,7 +49,7 @@ function focusRoom(id){
  const r=rooms.find(r=>r.id===id);if(!r)return;
  setView(r.floor===1?'first':'second');selected=id;enterInside();canvas.focus({preventScroll:true});
  // Eye-level viewpoints in clear floor space, away from walls and the upper floor opening.
- const views={1:[1.71,4.30,1.71,1.1],2:[5.4,2.55,5.3,5.1],3:[5.95,2.9,5.95,.9],4:[1.1,1.75,3.4,1.1],5:[1.1,4.5,3.4,3.4],6:[5.9,6.415,3.3,6.415],7:[2.65,6.05,1.7,7.3]};
+ const views={1:[1.71,4.30,1.71,1.1],2:[5.4,2.55,5.3,5.1],3:[4.40,2.725,6.65,2.725],4:[1.1,1.75,3.4,1.1],5:[1.1,4.5,3.4,3.4],6:[5.9,6.415,3.3,6.415],7:[2.65,6.05,1.7,7.3]};
  const [x,z,tx,tz]=views[id],y=(r.floor===2?LEVEL:0)+1.60;
  fly([W/2-x,y,z-D/2],[W/2-tx,y,tz-D/2]);
  $('room-info').hidden=false;$('room-info').innerHTML=`<b>${r.extension?r.name:r.id+' · '+r.name+' · '+r.area+' м²'}</b>${r.size}<br><small>Камера всередині · висота погляду 1,60 м</small>`;
