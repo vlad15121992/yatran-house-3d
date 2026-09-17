@@ -1,11 +1,15 @@
 import * as T from 'three';
-import {masonry,masonryUV,pine} from './masonry.js';
+import {masonry,masonryUV,pine} from './masonry.js?v=fireplace1';
 
 // Metres. Front edge z=0; rear edge z=5.45; house centred in world space.
 export const W=6.90,D=5.45,LEVEL=2.60,EXT=2.23,TERRACE=2.85;
 // Owner dimensions: finished terrace top, and side window measured from brick junction/top.
 export const HATCH={x:4.28,z:4.52,width:1.03,depth:.68};
 export const KITCHEN_HEIGHT=2.20;
+// Kitchen side of the garage partition. Looking at it, the right corner is z=5.20.
+export const FIREPLACE={wallX:3.50,rightCorner:5.20,rightOffset:1.92,height:2.20,postWidth:.04,postDepth:.08,baseWidth:1.14,baseDepth:.65,baseHeight:1.50,topWidth:.44,topDepth:.46,topHeight:.70};
+export const FIREPLACE_RIGHT=FIREPLACE.rightCorner-FIREPLACE.rightOffset-FIREPLACE.postWidth;
+export const FIREPLACE_LEFT=FIREPLACE_RIGHT-FIREPLACE.baseWidth;
 export const PASSAGE={a:5.55,b:6.35,height:2.05}; // 0.80 m wide; 0.30 m from right inner corner. Height estimated from photo.
 export const extensionWindow={a:D+.40,b:D+.90,low:TERRACE-.60-.60,high:TERRACE-.60};
 // Partition follows the red mark: continuation of the main ground-floor dividing wall.
@@ -108,6 +112,20 @@ export function makeModel(scene){
  // Main door on the recessed inner wall; outer entry openings stay open.
  houseBox(groups.first,5.68,1.03,1.97,.85,2.06,.065,frame);
  houseBox(groups.first,5.98,.95,1.925,.025,.18,.05,concrete);
+ // Existing unfinished masonry fireplace. The firebox is an actual arched recess.
+ const f=FIREPLACE,fireBrick=masonry('reclaimed',clip),soot=mat('#252522',{clippingPlanes:[clip],clipShadows:true}),postMetal=mat('#171b1d',{metalness:.65,roughness:.58,clippingPlanes:[clip],clipShadows:true});
+ const fireShape=new T.Shape();fireShape.moveTo(0,0);fireShape.lineTo(f.baseWidth,0);fireShape.lineTo(f.baseWidth,f.baseHeight);fireShape.lineTo(0,f.baseHeight);fireShape.closePath();
+ // Unmeasured inner opening: 72 cm wide, sill 36 cm, arched apex 122 cm, estimated from photograph.
+ const fireHole=new T.Path();archPath(fireHole,.21,.93,.36,1.04,1.22);fireShape.holes.push(fireHole);
+ const fireGeo=new T.ExtrudeGeometry(fireShape,{depth:f.baseDepth,bevelEnabled:false,curveSegments:24});fireGeo.rotateY(-Math.PI/2);
+ const fireBody=new T.Mesh(fireGeo,fireBrick);fireBody.position.set(f.wallX+f.baseDepth-W/2,0,FIREPLACE_LEFT-D/2);fireBody.userData.fireplace=true;masonryUV(fireBody);fireBody.castShadow=true;fireBody.receiveShadow=true;groups.first.add(fireBody);
+ const fireMid=(FIREPLACE_LEFT+FIREPLACE_RIGHT)/2;
+ houseBox(groups.first,f.wallX+.06,.80,fireMid,.12,.90,.74,soot);
+ houseBox(groups.first,f.wallX+f.baseDepth/2,.362,fireMid,f.baseDepth,.008,.72,soot);
+ // Narrow chimney body is centred and flush to the backing wall.
+ houseBox(groups.first,f.wallX+f.topDepth/2,f.baseHeight+f.topHeight/2,fireMid,f.topDepth,f.topHeight,f.topWidth,fireBrick);
+ // Rectangular steel tubes sit against the front corners, with 4 cm across the facade and 8 cm depth.
+ for(const z of [FIREPLACE_LEFT-f.postWidth/2,FIREPLACE_RIGHT+f.postWidth/2])houseBox(groups.first,f.wallX+f.baseDepth-f.postDepth/2,f.height/2,z,f.postDepth,f.height,f.postWidth,postMetal);
  // Ground ceiling of garage is 0.20 m lower than kitchen; visible only with full model.
  const garageCeiling=houseBox(groups.first,1.71,2.25,2.725,2.92,.20,4.95,concrete);
  // Four slab strips share the same 103 × 68 cm void as the kitchen ceiling.
@@ -230,6 +248,12 @@ export function makeModel(scene){
   if(height>10)return;
   const group=groups[active];if(!group)return;
   group.traverse(o=>{if(!o.isMesh||!o.visible)return;
+   if(o.userData.fireplace){
+    if(height<=0||height>=f.baseHeight)return;
+    const half=height>.36&&height<1.22?(height<=1.04?.36:.36*Math.sqrt(1-((height-1.04)/.18)**2)):0;
+    const spans=half?[[FIREPLACE_LEFT,fireMid-half],[fireMid+half,FIREPLACE_RIGHT]]:[[FIREPLACE_LEFT,FIREPLACE_RIGHT]];
+    for(const [a,b] of spans){const cap=new T.Mesh(new T.PlaneGeometry(f.baseDepth,b-a),capMat);cap.rotation.x=-Math.PI/2;cap.position.set(f.wallX+f.baseDepth/2-W/2,height+.002,(a+b)/2-D/2);caps.add(cap);}return;
+   }
    if(o.userData.sideOpenings){
     const y=height-o.position.y;if(y<=0||y>=2.4)return;
     const intervals=o.userData.sideOpenings.filter(a=>y>a.low&&y<a.high).map(a=>{let half=(a.b-a.a)/2;if(a.arch&&y>a.spring)half*=Math.sqrt(1-Math.pow((y-a.spring)/(a.high-a.spring),2));return [(a.a+a.b)/2-half,(a.a+a.b)/2+half];});

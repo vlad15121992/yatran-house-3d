@@ -18,6 +18,7 @@ export function planSVG(mode){
  body+=text(210,213,'3,80 × 2,36 м',13)+text(210,467,'3,80 × 2,36 м',13)+text(550,339,'h = 2,40 м',13);
  }else{
  body=outer+wall(317,25,33,495)+wall(466,348,20,172)+wall(466,338,199,20)+opening(523,336,90,24)+opening(50,518,243,29)+opening(508,518,126,29)+opening(663,383,29,110)+window(365,520,88,25)+window(665,141,25,110);
+ body+='<rect x="350" y="221" width="65" height="114" fill="#b2a190" stroke="#605247" stroke-width="2"/><rect x="350" y="256" width="46" height="44" fill="none" stroke="#605247" stroke-dasharray="4 3"/><rect x="407" y="217" width="8" height="4" fill="#171b1d"/><rect x="407" y="335" width="8" height="4" fill="#171b1d"/>'+text(382.5,275,'Камін',11)+text(382.5,291,'114 × 65',9);
  body+=opening(555,-2,80,29)+text(592,48,'Прохід ≈ 80 см',11);
  body+=room(172,267,'1 · Гараж','14,5')+room(510,229,'2 · Кухня','11,6');body+=text(172,339,'2,92 × 4,95 м',13)+text(172,362,'h = 2,15 м',13)+text(516,281,'h = 2,20 м',13)+text(570,439,'Вхід',15);
  body+=`<rect x="428" y="25" width="103" height="68" fill="none" stroke="#8b8172" stroke-dasharray="5 4"/>`+text(475,65,'Отвір у стелі',10);
