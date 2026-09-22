@@ -32,6 +32,13 @@ export const CHIMNEY_CASES=[{room:4,width:.73,depth:.23},{room:5,width:.68,depth
 export const CEILING_SLOPE=(UPPER_CEILING.high-UPPER_CEILING.low)/UPPER_PARTITION.roomWidth;
 export const CEILING_RIDGE=UPPER_CEILING.floor+UPPER_CEILING.high+CEILING_SLOPE*roomDividerThickness/2;
 export const ceilingAt=z=>CEILING_RIDGE-CEILING_SLOPE*Math.abs(z-D/2);
+// Terrace sheets tuck under the main eave; joint dimensions are visual estimates.
+export const CANOPY={start:D-.06,end:D+EXT+.20,fall:.23,clearance:.06};
+export const canopySlope=CANOPY.fall/(CANOPY.end-CANOPY.start);
+export const mainRoofUndersideAt=z=>ceilingAt(z)+.15+.04-.065/2*Math.sqrt(1+CEILING_SLOPE**2);
+const canopyRibTopOffset=.11+.025/2*Math.sqrt(1+canopySlope**2);
+export const canopyInnerY=mainRoofUndersideAt(D+.13)-CANOPY.clearance-canopyRibTopOffset+canopySlope*(D+.13-CANOPY.start);
+export const canopyAt=z=>canopyInnerY-canopySlope*(z-CANOPY.start);
 // All exposed upstairs ties are horizontal, 240 cm clear above finished floor.
 // Owner measured 10 x 10 cm; the two free positions remain estimated from photos.
 export const BEAM_CLEAR_HEIGHT=2.40;
@@ -266,14 +273,14 @@ export function makeModel(scene){
  houseBox(groups.second,W/2,TERRACE-.015,D+EXT/2,W,.03,EXT,deck);
  houseBox(groups.base,W/2,-.25,D+EXT/2,W+.06,.30,EXT+.06,concrete);
  // Terrace is unfinished: exposed structural timber, no decorative balustrade.
- const innerY=5.05,outerY=4.82,canopyDepth=EXT+.20;
+ const innerY=canopyAt(CANOPY.start),outerY=canopyAt(CANOPY.end),canopyDepth=CANOPY.end-CANOPY.start,canopyCentre=(CANOPY.start+CANOPY.end)/2;
  for(const x of [.12,2.34,4.56,W-.12])houseBox(groups.roof,x,(TERRACE+outerY)/2,D+EXT-.10,.14,outerY-TERRACE,.14,timber);
  houseBox(groups.roof,W/2,outerY-.03,D+EXT-.10,W+.2,.19,.16,timber);
  houseBox(groups.roof,W/2,innerY-.08,D+.06,W+.1,.18,.13,timber);
- const canopySlope=Math.atan2(innerY-outerY,canopyDepth),canopyLen=Math.hypot(canopyDepth,innerY-outerY);
- for(let x=.08;x<W;x+=.55){const beam=houseBox(groups.roof,x,(innerY+outerY)/2-.025,D+canopyDepth/2,.085,.17,canopyLen,timber);beam.rotation.x=canopySlope;}
- const canopy=houseBox(groups.roof,W/2,(innerY+outerY)/2+.085,D+canopyDepth/2,W+.28,.035,canopyLen,sheet);canopy.rotation.x=canopySlope;
- for(let x=-.10;x<W+.12;x+=.14){const rib=houseBox(groups.roof,x,(innerY+outerY)/2+.11,D+canopyDepth/2,.035,.025,canopyLen,sheet);rib.rotation.x=canopySlope;}
+ const canopyAngle=Math.atan2(innerY-outerY,canopyDepth),canopyLen=Math.hypot(canopyDepth,innerY-outerY);
+ for(let x=.08;x<W;x+=.55){const beam=houseBox(groups.roof,x,(innerY+outerY)/2-.025,canopyCentre,.085,.17,canopyLen,timber);beam.rotation.x=canopyAngle;}
+ const canopy=houseBox(groups.roof,W/2,(innerY+outerY)/2+.085,canopyCentre,W+.28,.035,canopyLen,sheet);canopy.rotation.x=canopyAngle;
+ for(let x=-.10;x<W+.12;x+=.14){const rib=houseBox(groups.roof,x,(innerY+outerY)/2+.11,canopyCentre,.035,.025,canopyLen,sheet);rib.rotation.x=canopyAngle;}
  // Foundation and neutral paving; no decorative garden or interior styling.
  houseBox(groups.base,3.45,-.26,2.725,7.03,.30,5.58,concrete);
  // Bare footing instead of a finished paved apron.
