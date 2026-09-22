@@ -33,11 +33,12 @@ export const CEILING_SLOPE=(UPPER_CEILING.high-UPPER_CEILING.low)/UPPER_PARTITIO
 export const CEILING_RIDGE=UPPER_CEILING.floor+UPPER_CEILING.high+CEILING_SLOPE*roomDividerThickness/2;
 export const ceilingAt=z=>CEILING_RIDGE-CEILING_SLOPE*Math.abs(z-D/2);
 // Terrace sheets tuck under the main eave; joint dimensions are visual estimates.
-export const CANOPY={start:D-.06,end:D+EXT+.20,fall:.23,clearance:.06};
+export const CANOPY={start:D-.06,end:D+EXT+.20,fall:.23,clearance:0};
 export const canopySlope=CANOPY.fall/(CANOPY.end-CANOPY.start);
 export const mainRoofUndersideAt=z=>ceilingAt(z)+.15+.04-.065/2*Math.sqrt(1+CEILING_SLOPE**2);
-const canopyRibTopOffset=.11+.025/2*Math.sqrt(1+canopySlope**2);
-export const canopyInnerY=mainRoofUndersideAt(D+.13)-CANOPY.clearance-canopyRibTopOffset+canopySlope*(D+.13-CANOPY.start);
+// Bring the continuous sheet face into contact; ribs sit within the lap.
+const canopySheetTopOffset=.085+.035/2*Math.sqrt(1+canopySlope**2);
+export const canopyInnerY=mainRoofUndersideAt(D+.13)-CANOPY.clearance-canopySheetTopOffset+canopySlope*(D+.13-CANOPY.start);
 export const canopyAt=z=>canopyInnerY-canopySlope*(z-CANOPY.start);
 // All exposed upstairs ties are horizontal, 240 cm clear above finished floor.
 // Owner measured 10 x 10 cm; the two free positions remain estimated from photos.
