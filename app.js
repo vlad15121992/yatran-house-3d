@@ -1,9 +1,9 @@
-import {terraceAccess} from './terrace.js?v=oakstairs1';
+import {terraceAccess} from './terrace.js?v=oakstairs2';
 import * as T from 'three';
-import {createStudy} from './study.js?v=oakstairs1';
+import {createStudy} from './study.js?v=oakstairs2';
 import {OrbitControls} from './vendor/OrbitControls.js';
-import {makeModel,rooms,W,D,LEVEL} from './model.js?v=oakstairs1';
-import {planSVG} from './plans.js?v=oakstairs1';
+import {makeModel,rooms,W,D,LEVEL} from './model.js?v=oakstairs2';
+import {planSVG} from './plans.js?v=oakstairs2';
 
 const $=id=>document.getElementById(id),canvas=$('scene');
 const scene=new T.Scene();scene.background=new T.Color('#f6f4ef');const reducedMotion=matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -121,3 +121,5 @@ if(new URLSearchParams(location.search).get('study')==='room3')startStudy();
 if(new URLSearchParams(location.search).has('terrace')){setView('house');fly([16,8,12],[2.4,1.6,1.4]);}
 
 if(new URLSearchParams(location.search).has('stairs')){focusRoom(2);fly([W/2-5.5,1.6,3.4-D/2],[W/2-4.9,1.65,4.86-D/2]);}
+
+if(new URLSearchParams(location.search).get('stairs')==='top'){focusRoom(3);fly([W/2-5.7,3.75,4.3-D/2],[W/2-4.85,2.15,4.86-D/2]);}

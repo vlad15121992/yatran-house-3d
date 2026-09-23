@@ -1,6 +1,6 @@
 import * as T from 'three';
 import {pine,masonryUV} from './masonry.js?v=fireplace1';
-import {W,D,EXT,TERRACE} from './model.js?v=oakstairs1';
+import {W,D,EXT,TERRACE} from './model.js?v=oakstairs2';
 
 // Concept only: grade, footing, timber sections and anchorage need site verification.
 export const ACCESS={ground:-.27,top:TERRACE,risers:20,going:.27,width:1.0,guard:1.10,maxGap:.075,landing:1.20};

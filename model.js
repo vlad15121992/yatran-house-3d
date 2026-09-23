@@ -199,11 +199,13 @@ export function makeModel(scene){
  for(const [i,z] of [UPPER_END_WALL/2,D-UPPER_END_WALL/2].entries()){const w=ROOM_WINDOWS[i];window(groups.second,'x',z,w.a,w.b,LEVEL,w.low,w.high);}
  // Upper doorway faces the terrace. Existing house floor datum remains provisional.
  // Steep ladder stair fitted to the EXISTING 1.03 x .68 hatch, without slab changes.
- // Visual proposal: 75 degrees, 12 rises; verify head/body clearance on site.
+ // Visual proposal: 65 degrees, 12 rises; verify head/body clearance on site.
  const ladderWood=pine(.14,clip,{pale:true});ladderWood.color.set('#91613b');
- const ladderTop=LEVEL+.024,ladderRun=.70,ladderX=HATCH.x+HATCH.width-.20,ladderZ=HATCH.z+HATCH.depth/2;
+ const ladderTop=LEVEL+.024,ladderRun=1.20,ladderX=HATCH.x+HATCH.width,ladderZ=HATCH.z+HATCH.depth/2;
  const ladderBeam=(g,a,b,w,d)=>{const av=new T.Vector3(...a),bv=new T.Vector3(...b),v=bv.clone().sub(av),mid=av.clone().add(bv).multiplyScalar(.5);const m=houseBox(g,mid.x,mid.y,mid.z,w,v.length(),d,ladderWood);m.quaternion.setFromUnitVectors(new T.Vector3(0,1,0),v.normalize());return m;};
  for(let i=1;i<12;i++){const y=ladderTop*i/12,x=ladderX-ladderRun*(1-i/12);houseBox(groups.first,x,y-.02,ladderZ,.23,.04,.56,ladderWood);}
+ // Top tread meets the finished floor edge exactly; no gap at the exit.
+ houseBox(groups.second,ladderX-.115,ladderTop-.02,ladderZ,.23,.04,.68,ladderWood);
  for(const sign of [-1,1]){
   const z=ladderZ+sign*.30;
   ladderBeam(groups.first,[ladderX-ladderRun,0,z],[ladderX,ladderTop,z],.14,.04);
