@@ -259,6 +259,30 @@ export function makeModel(scene){
  wallRun(groups.first,'z',.15,D,D+EXT-.30,0,TERRACE-.23,.30,[],block);
  wallRun(groups.first,'z',W-.15,D,D+EXT-.30,0,TERRACE-.23,.30,[extensionWindow],block);
  window(groups.first,'z',W-.15,extensionWindow.a,extensionWindow.b,0,extensionWindow.low,extensionWindow.high);
+ // Proposed Scandinavian exterior: real 100 mm vertical boards, 3 mm joints.
+ // Thin backing and reveals cover AAC outside only; internal walls remain unchanged.
+ const grainCanvas=document.createElement('canvas');grainCanvas.width=256;grainCanvas.height=1024;
+ const gc=grainCanvas.getContext('2d');gc.fillStyle='#50534f';gc.fillRect(0,0,256,1024);
+ let grainSeed=107;const grainRand=()=>{grainSeed=(grainSeed*1664525+1013904223)>>>0;return grainSeed/4294967296;};
+ for(let i=0;i<190;i++){const u=grainRand()*256;gc.strokeStyle=grainRand()>.5?'#7b827518':'#080b0940';gc.lineWidth=.5+grainRand()*2;gc.beginPath();gc.moveTo(u,0);gc.bezierCurveTo(u+12,300,u-12,700,u,1024);gc.stroke();}
+ const blackMap=new T.CanvasTexture(grainCanvas);blackMap.colorSpace=T.SRGBColorSpace;blackMap.wrapS=blackMap.wrapT=T.RepeatWrapping;blackMap.anisotropy=8;
+ const blackWood=mat('#ffffff',{map:blackMap,bumpMap:blackMap,bumpScale:.0015,roughness:.96,clippingPlanes:[clip],clipShadows:true});blackWood.userData.tile=[.103,2.82];
+ const shadowGap=mat('#151816',{clippingPlanes:[clip],clipShadows:true});
+ const clad=(axis,fixed,start,end,openings)=>{
+  wallRun(groups.first,axis,fixed,start,end,0,TERRACE-.03,.012,openings,shadowGap);
+  const outer=fixed+(axis==='z'&&fixed<1?-.017:.017);
+  for(let a=start;a<end-.001;a+=.103)wallRun(groups.first,axis,outer,a,Math.min(a+.10,end),0,TERRACE-.03,.022,openings,blackWood);
+  // Dark returns from facade to existing recessed black window frames.
+  for(const o of openings){const mid=(o.a+o.b)/2,cy=(o.low+o.high)/2,dep=.19;
+   const put=(u,y,w,h)=>axis==='x'?houseBox(groups.first,u,y,fixed-.075,w,h,dep,shadowGap):houseBox(groups.first,fixed-.075,y,u,dep,h,w,shadowGap);
+   for(const u of [o.a-.008,o.b+.008])put(u,cy,.016,o.high-o.low+.032);
+   for(const y of [o.low-.008,o.high+.008])put(mid,y,o.b-o.a,.016);
+  }
+ };
+ clad('x',D+EXT+.007,0,W,[toiletWindow]);
+ clad('z',-.007,D,D+EXT,[]);
+ clad('z',W+.007,D,D+EXT,[extensionWindow]);
+
  // Unfinished green plasterboard partition, open door, no door leaf or fixtures.
  const doorCentre=D+(EXT-.30)/2,doorA=doorCentre-PARTITION.doorWidth/2,doorB=doorCentre+PARTITION.doorWidth/2;
  wallRun(groups.first,'z',PARTITION.x,D,D+EXT-.30,0,TERRACE-.23,PARTITION.thickness,[{a:doorA,b:doorB,low:0,high:PARTITION.doorHeight}],drywall);

@@ -1,10 +1,10 @@
-import {terraceAccess} from './terrace.js?v=terrace2';
-import {furnish} from './furniture.js?v=terrace2';
+import {terraceAccess} from './terrace.js?v=blackwood1';
+import {furnish} from './furniture.js?v=blackwood1';
 import * as T from 'three';
-import {createStudy} from './study.js?v=terrace2';
+import {createStudy} from './study.js?v=blackwood1';
 import {OrbitControls} from './vendor/OrbitControls.js';
-import {makeModel,rooms,W,D,LEVEL} from './model.js?v=terrace2';
-import {planSVG} from './plans.js?v=terrace2';
+import {makeModel,rooms,W,D,LEVEL} from './model.js?v=blackwood1';
+import {planSVG} from './plans.js?v=blackwood1';
 
 const $=id=>document.getElementById(id),canvas=$('scene');
 const scene=new T.Scene();scene.background=new T.Color('#f6f4ef');const reducedMotion=matchMedia('(prefers-reduced-motion: reduce)').matches;
