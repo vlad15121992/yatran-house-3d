@@ -1,9 +1,10 @@
-import {furnish} from './furniture.js?v=furnish1';
+import {terraceAccess} from './terrace.js?v=terrace1';
+import {furnish} from './furniture.js?v=terrace1';
 import * as T from 'three';
-import {createStudy} from './study.js?v=furnish1';
+import {createStudy} from './study.js?v=terrace1';
 import {OrbitControls} from './vendor/OrbitControls.js';
-import {makeModel,rooms,W,D,LEVEL} from './model.js?v=furnish1';
-import {planSVG} from './plans.js?v=furnish1';
+import {makeModel,rooms,W,D,LEVEL} from './model.js?v=terrace1';
+import {planSVG} from './plans.js?v=terrace1';
 
 const $=id=>document.getElementById(id),canvas=$('scene');
 const scene=new T.Scene();scene.background=new T.Color('#f6f4ef');const reducedMotion=matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -16,7 +17,7 @@ scene.add(new T.HemisphereLight('#fffaf0','#a4aaa5',1.7));
 const sun=new T.DirectionalLight('#fff3de',2.5);sun.position.set(-9,15,-10);sun.castShadow=true;sun.shadow.mapSize.set(2048,2048);sun.shadow.camera.left=-22;sun.shadow.camera.right=22;sun.shadow.camera.top=30;sun.shadow.camera.bottom=-20;sun.shadow.normalBias=.035;sun.shadow.bias=-.0002;sun.shadow.radius=4;scene.add(sun);
 const ground=new T.Mesh(new T.PlaneGeometry(500,500),new T.MeshStandardMaterial({color:'#f6f4ef',roughness:1}));ground.rotation.x=-Math.PI/2;ground.position.y=-.59;ground.receiveShadow=true;scene.add(ground);
 const model=makeModel(scene);let current='house',plan=false,selected=null,tween=null,inside=false;
-const furniture=furnish(model);
+const furniture=furnish(model);const outdoorAccess=terraceAccess(scene);
 const study=createStudy(model,scene,renderer,ground);let studyWanted=false;
 const title={house:'01 / ЗАГАЛЬНИЙ ВИГЛЯД',first:'02 / ПЕРШИЙ ПОВЕРХ',second:'03 / ДРУГИЙ ПОВЕРХ',site:'04 / ДІЛЯНКА'};
 const labelEntries=model.labels.map(l=>{const el=document.createElement('div');el.className=`label ${l.kind==='room'?'room-label':l.kind==='site'?'site-label':''}`;el.innerHTML=l.text;$('labels').append(el);return {...l,el};});
@@ -24,7 +25,7 @@ function fly(pos,target){if(reducedMotion){camera.position.set(...pos);controls.
 controls.addEventListener('start',()=>{tween=null;});
 function defaultCamera(){const mobile=innerWidth<700;if(current==='site')fly(mobile?[50,53,-67]:[32,35,-40],[-5,0,9]);else if(current==='first')fly(mobile?[-15,18,19]:[-10,13,14],[0,.4,1.1]);else if(current==='second')fly(mobile?[-15,20,19]:[-10,15,14],[0,3.0,1.1]);else fly(mobile?[-24,10,15]:[-17,7,11],[0,2.6,1.05]);}
 function apply(){
- furniture.setVisible($('furniture').checked);
+ furniture.setVisible($('furniture').checked);outdoorAccess.visible=current!=='first'||inside;
  const floorMode=current==='first'||current==='second';
  controls.enabled=!inside&&!plan;controls.enableZoom=true;camera.fov=inside?70:37;camera.updateProjectionMatrix();
  model.groups.first.visible=inside||current!=='second';model.groups.second.visible=inside||current!=='first';model.groups.roof.visible=inside||(!floorMode&&$('roof').checked);
@@ -117,3 +118,5 @@ $('study-photo').addEventListener('click',async()=>{try{await study.load();study
 if(new URLSearchParams(location.search).get('study')==='room3')startStudy();
 
 if(new URLSearchParams(location.search).has('furnished'))setView('second');
+
+if(new URLSearchParams(location.search).has('terrace')){setView('house');fly([15,8,16],[2.8,1.8,5.0]);}
