@@ -1,14 +1,15 @@
 import * as T from 'three';
 import {pine,masonryUV} from './masonry.js?v=fireplace1';
-import {W,D,EXT,TERRACE} from './model.js?v=terrace1';
+import {W,D,EXT,TERRACE} from './model.js?v=terrace2';
 
 // Concept only: grade, footing, timber sections and anchorage need site verification.
-export const ACCESS={ground:-.51,top:TERRACE,risers:20,going:.27,width:1.0,guard:1.10,maxGap:.075,landing:1.20};
+export const ACCESS={ground:-.27,top:TERRACE,risers:20,going:.27,width:1.0,guard:1.10,maxGap:.075,landing:1.20};
 export function terraceAccess(scene){
  const group=new T.Group();group.scale.x=-1;scene.add(group);
  const wood=pine(.14,null,{pale:true}),metal=new T.MeshStandardMaterial({color:'#292e2b',roughness:.7}),concrete=new T.MeshStandardMaterial({color:'#a6a297',roughness:1});
- const B=(x,y,z,w,h,d,m=wood)=>{const o=new T.Mesh(new T.BoxGeometry(w,h,d),m);o.position.set(x-W/2,y,z-D/2);if(m.userData.tile)masonryUV(o);o.castShadow=o.receiveShadow=true;group.add(o);return o;};
- const beam=(a,b,w,d,m=wood)=>{const av=new T.Vector3(...a),bv=new T.Vector3(...b),v=bv.clone().sub(av),mid=av.clone().add(bv).multiplyScalar(.5);const o=B(mid.x,mid.y,mid.z,w,v.length(),d,m);o.quaternion.setFromUnitVectors(new T.Vector3(0,1,0),v.normalize());return o;};
+ let reverseFlight=false;const reflectZ=z=>2*(D+EXT-.10)-1.20-z;
+ const B=(x,y,z,w,h,d,m=wood)=>{if(reverseFlight)z=reflectZ(z);const o=new T.Mesh(new T.BoxGeometry(w,h,d),m);o.position.set(x-W/2,y,z-D/2);if(m.userData.tile)masonryUV(o);o.castShadow=o.receiveShadow=true;group.add(o);return o;};
+ const beam=(a,b,w,d,m=wood)=>{const av=new T.Vector3(...a),bv=new T.Vector3(...b),v=bv.clone().sub(av),mid=av.clone().add(bv).multiplyScalar(.5);const o=B(mid.x,mid.y,mid.z,w,v.length(),d,m);if(reverseFlight)v.z=-v.z;o.quaternion.setFromUnitVectors(new T.Vector3(0,1,0),v.normalize());return o;};
  function rail(a,b,y=TERRACE){
   const length=Math.hypot(b[0]-a[0],b[1]-a[1]),n=Math.ceil(length/1.15),dx=(b[0]-a[0])/length,dz=(b[1]-a[1])/length;
   for(let j=0;j<=n;j++){const t=j/n;B(a[0]+(b[0]-a[0])*t,y+.55,a[1]+(b[1]-a[1])*t,.09,1.10,.09);}
@@ -27,10 +28,11 @@ export function terraceAccess(scene){
  for(let z=g0+.13;z<g1-.08;z+=.105)B(gateX,TERRACE+.565,z,.045,.93,.045);
  for(const y of [.22,.85])B(-.001,TERRACE+y,g0+.025,.025,.065,.14,metal);
  B(.092,TERRACE+1.04,g1-.07,.03,.10,.11,metal);
- // Landing outside the marked short end; flight turns toward the yard (+z).
+ // Reflect only landing/flight about the landing centre: descend toward front yard (-z).
+ reverseFlight=true;
  const start=edge,cx=-.60,rise=(TERRACE-ACCESS.ground)/ACCESS.risers,run=(ACCESS.risers-1)*ACCESS.going,end=start+run;
  B(cx,TERRACE-.035,start-.60,1.20,.07,1.20);
- for(const x of [-1.10,-.10])for(const z of [start-1.10,start-.10]){B(x,(TERRACE+ACCESS.ground)/2,z,.12,TERRACE-ACCESS.ground,.12);B(x,ACCESS.ground-.11,z,.32,.22,.32,concrete);}
+ for(const x of [-1.10,-.10])for(const z of [start-1.10,start-.10]){B(x,(TERRACE+ACCESS.ground)/2,z,.12,TERRACE-ACCESS.ground,.12);B(x,ACCESS.ground-.065,z,.32,.13,.32,concrete);}
  for(const x of [-1.10,-.10])B(x,TERRACE-.15,start-.60,.12,.23,1.20);
  for(const z of [start-1.10,start-.10])beam([-1.10,TERRACE-.85,z],[-.45,TERRACE-.15,z],.075,.075);
  rail([-1.15,start-1.15],[-.045,start-1.15]);rail([-1.15,start-1.15],[-1.15,start]);
@@ -41,7 +43,7 @@ export function terraceAccess(scene){
   B(cx,y+rise/2,start+i*ACCESS.going,ACCESS.width,rise,.024);
  }
  B(cx,ACCESS.ground+rise/2,end,ACCESS.width,rise,.025);
- for(const x of [cx-.47,cx+.47])beam([x,TERRACE-.15,start],[x,ACCESS.ground-.08,end],.095,.24);
+ for(const x of [cx-.47,cx+.47])beam([x,TERRACE-.15,start],[x,ACCESS.ground+.04,end],.095,.24);
  B(cx,ACCESS.ground-.065,end+.45,1.34,.13,.95,concrete);
  for(const x of [cx-.55,cx+.55]){
   

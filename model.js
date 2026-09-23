@@ -288,7 +288,7 @@ export function makeModel(scene){
  // Site: published side lengths constrain an approximate trapezoid only.
  const siteShape=new T.Shape();siteShape.moveTo(-5.10,-5.3);siteShape.lineTo(16.23,-5.3);siteShape.lineTo(15.31,23.82);siteShape.lineTo(-4.51,23.92);siteShape.closePath();
  const geo=new T.ShapeGeometry(siteShape);geo.rotateX(Math.PI/2);
- const ground=new T.Mesh(geo,mat('#c5c8b4',{side:T.DoubleSide}));ground.position.y=-.51;ground.receiveShadow=true;groups.site.add(ground);
+ const ground=new T.Mesh(geo,mat('#c5c8b4',{side:T.DoubleSide}));ground.position.y=-.40;ground.receiveShadow=true;groups.site.add(ground);
  const corners=[[-5.10,-5.3],[16.23,-5.3],[15.31,23.82],[-4.51,23.92]];
  function fence(a,b,gap=false){const dx=b[0]-a[0],dz=b[1]-a[1],len=Math.hypot(dx,dz),n=Math.ceil(len/1.8);for(let i=0;i<=n;i++){const t=i/n,x=a[0]+dx*t,z=a[1]+dz*t;if(gap&&x>-3.1&&x<3.4)continue;box(groups.site,x,.13,z,.065,1.3,.065,metal);}for(const yy of [.0,.65]){if(gap){for(const [p,q] of [[a[0],-3.1],[3.4,b[0]]])box(groups.site,(p+q)/2,yy,a[1],q-p,.04,.04,metal);}else{const rail=box(groups.site,(a[0]+b[0])/2,yy,(a[1]+b[1])/2,len,.04,.04,metal);rail.rotation.y=-Math.atan2(dz,dx);}}}
  corners.forEach((p,i)=>fence(p,corners[(i+1)%4],i===0));

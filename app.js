@@ -1,10 +1,10 @@
-import {terraceAccess} from './terrace.js?v=terrace1';
-import {furnish} from './furniture.js?v=terrace1';
+import {terraceAccess} from './terrace.js?v=terrace2';
+import {furnish} from './furniture.js?v=terrace2';
 import * as T from 'three';
-import {createStudy} from './study.js?v=terrace1';
+import {createStudy} from './study.js?v=terrace2';
 import {OrbitControls} from './vendor/OrbitControls.js';
-import {makeModel,rooms,W,D,LEVEL} from './model.js?v=terrace1';
-import {planSVG} from './plans.js?v=terrace1';
+import {makeModel,rooms,W,D,LEVEL} from './model.js?v=terrace2';
+import {planSVG} from './plans.js?v=terrace2';
 
 const $=id=>document.getElementById(id),canvas=$('scene');
 const scene=new T.Scene();scene.background=new T.Color('#f6f4ef');const reducedMotion=matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -15,7 +15,7 @@ const camera=new T.PerspectiveCamera(37,1,.025,300);camera.position.set(13,9,-17
 const controls=new OrbitControls(camera,canvas);controls.target.set(0,2.45,0);controls.enableDamping=true;controls.dampingFactor=.085;controls.minDistance=.05;controls.maxDistance=95;controls.maxPolarAngle=Math.PI/2-.01;controls.autoRotateSpeed=.7;
 scene.add(new T.HemisphereLight('#fffaf0','#a4aaa5',1.7));
 const sun=new T.DirectionalLight('#fff3de',2.5);sun.position.set(-9,15,-10);sun.castShadow=true;sun.shadow.mapSize.set(2048,2048);sun.shadow.camera.left=-22;sun.shadow.camera.right=22;sun.shadow.camera.top=30;sun.shadow.camera.bottom=-20;sun.shadow.normalBias=.035;sun.shadow.bias=-.0002;sun.shadow.radius=4;scene.add(sun);
-const ground=new T.Mesh(new T.PlaneGeometry(500,500),new T.MeshStandardMaterial({color:'#f6f4ef',roughness:1}));ground.rotation.x=-Math.PI/2;ground.position.y=-.59;ground.receiveShadow=true;scene.add(ground);
+const ground=new T.Mesh(new T.PlaneGeometry(500,500),new T.MeshStandardMaterial({color:'#f6f4ef',roughness:1}));ground.rotation.x=-Math.PI/2;ground.position.y=-.40;ground.receiveShadow=true;scene.add(ground);
 const model=makeModel(scene);let current='house',plan=false,selected=null,tween=null,inside=false;
 const furniture=furnish(model);const outdoorAccess=terraceAccess(scene);
 const study=createStudy(model,scene,renderer,ground);let studyWanted=false;
@@ -119,4 +119,4 @@ if(new URLSearchParams(location.search).get('study')==='room3')startStudy();
 
 if(new URLSearchParams(location.search).has('furnished'))setView('second');
 
-if(new URLSearchParams(location.search).has('terrace')){setView('house');fly([15,8,16],[2.8,1.8,5.0]);}
+if(new URLSearchParams(location.search).has('terrace')){setView('house');fly([16,8,12],[2.4,1.6,1.4]);}
