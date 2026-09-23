@@ -336,7 +336,7 @@ export function makeModel(scene){
    if(min<height&&max>height){const cap=new T.Mesh(new T.PlaneGeometry(width,depth),capMat);cap.rotation.x=-Math.PI/2;cap.position.set(o.position.x,height+.002,o.position.z);caps.add(cap);}
   });
  }
- return {groups,clip,labels,garageCeiling,kitchenCeiling,rooms,updateCaps};
+ return {groups,clip,labels,garageCeiling,kitchenCeiling,rooms,updateCaps,materials:{wall,lining,boards,timber,glass}};
 }
 
 

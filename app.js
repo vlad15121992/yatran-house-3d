@@ -1,7 +1,8 @@
 import * as T from 'three';
+import {createStudy} from './study.js?v=study1';
 import {OrbitControls} from './vendor/OrbitControls.js';
-import {makeModel,rooms,W,D,LEVEL} from './model.js?v=roofjoint2';
-import {planSVG} from './plans.js?v=roofjoint2';
+import {makeModel,rooms,W,D,LEVEL} from './model.js?v=study1';
+import {planSVG} from './plans.js?v=study1';
 
 const $=id=>document.getElementById(id),canvas=$('scene');
 const scene=new T.Scene();scene.background=new T.Color('#f6f4ef');const reducedMotion=matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -14,6 +15,7 @@ scene.add(new T.HemisphereLight('#fffaf0','#a4aaa5',1.7));
 const sun=new T.DirectionalLight('#fff3de',2.5);sun.position.set(-9,15,-10);sun.castShadow=true;sun.shadow.mapSize.set(2048,2048);sun.shadow.camera.left=-22;sun.shadow.camera.right=22;sun.shadow.camera.top=30;sun.shadow.camera.bottom=-20;sun.shadow.normalBias=.035;sun.shadow.bias=-.0002;sun.shadow.radius=4;scene.add(sun);
 const ground=new T.Mesh(new T.PlaneGeometry(500,500),new T.MeshStandardMaterial({color:'#f6f4ef',roughness:1}));ground.rotation.x=-Math.PI/2;ground.position.y=-.59;ground.receiveShadow=true;scene.add(ground);
 const model=makeModel(scene);let current='house',plan=false,selected=null,tween=null,inside=false;
+const study=createStudy(model,scene,renderer,ground);let studyWanted=false;
 const title={house:'01 / ЗАГАЛЬНИЙ ВИГЛЯД',first:'02 / ПЕРШИЙ ПОВЕРХ',second:'03 / ДРУГИЙ ПОВЕРХ',site:'04 / ДІЛЯНКА'};
 const labelEntries=model.labels.map(l=>{const el=document.createElement('div');el.className=`label ${l.kind==='room'?'room-label':l.kind==='site'?'site-label':''}`;el.innerHTML=l.text;$('labels').append(el);return {...l,el};});
 function fly(pos,target){if(reducedMotion){camera.position.set(...pos);controls.target.set(...target);tween=null;return;}tween={from:camera.position.clone(),to:new T.Vector3(...pos),fromTarget:controls.target.clone(),toTarget:new T.Vector3(...target),start:performance.now()};}
@@ -40,6 +42,9 @@ function apply(){
  $('room-list').innerHTML=visibleRooms.map(r=>`<button class="room" data-room="${r.id}"><span>${r.extension?r.name:r.id+' · '+r.name}</span><span>${r.area?r.area+' м²':'Увійти'}</span></button>`).join('');
  $('room-list').querySelectorAll('button').forEach(b=>b.addEventListener('click',()=>focusRoom(Number(b.dataset.room))));
  $('view-title').textContent=inside?(selected?(rooms.find(r=>r.id===selected)?.extension?rooms.find(r=>r.id===selected).name:'КІМНАТА '+selected)+' / ЗСЕРЕДИНИ':'ОГЛЯД ЗСЕРЕДИНИ'):title[current];$('plan-content').innerHTML=planSVG(current);
+ study.setEnabled(studyWanted&&inside&&selected===3&&!plan);
+ $('study-compare').hidden=!(inside&&selected===3);
+ $('study-photo').setAttribute('aria-pressed',String(studyWanted));$('study-sketch').setAttribute('aria-pressed',String(!studyWanted));
  $('snapshot').disabled=plan;$('top').disabled=plan;
 }
 function setView(view){inside=false;current=view;selected=null;$('ceiling').checked=false;$('room-info').hidden=true;$('cut').checked=view==='first'||view==='second';document.querySelectorAll('.view').forEach(b=>{b.classList.toggle('active',b.dataset.view===view);b.setAttribute('aria-pressed',String(b.dataset.view===view));});apply();defaultCamera();}
@@ -96,3 +101,14 @@ function animate(now){requestAnimationFrame(animate);if(tween){const t=Math.min(
  for(const l of labelEntries){const show=!plan&&((l.kind==='dimension'&&$('dimensions').checked)||(l.kind==='site-dim'&&$('dimensions').checked&&current==='site')||(l.kind==='site'&&current==='site')||(l.kind==='room'&&$('cut').checked&&((current==='first'&&l.floor===1)||(current==='second'&&l.floor===2))));l.el.hidden=!show;if(show){const p=l.point.clone().project(camera);l.el.hidden=p.z>1||p.z< -1||Math.abs(p.x)>1||Math.abs(p.y)>1;l.el.style.left=`${(p.x*.5+.5)*width}px`;l.el.style.top=`${(-p.y*.5+.5)*height}px`;}}
 }
 apply();resize();defaultCamera();requestAnimationFrame(animate);$('loading').hidden=true;if(innerWidth<700)$('hint').textContent='Один палець — обертання · Два — масштаб';
+
+async function startStudy(){
+ focusRoom(3);$('study-status').textContent='Завантажую фотоматеріали…';$('study-open').disabled=true;
+ try{await study.load();studyWanted=true;apply();$('study-status').textContent='Пробна кімната · підібрані аналоги цегли та сосни. Відтінки орієнтовні. Краєвид за вікнами — умовний.';}
+ catch(error){console.error('Material study:',error);$('study-status').textContent='Не вдалося завантажити матеріали. Натисніть ще раз, щоб повторити.';}
+ finally{$('study-open').disabled=false;}
+}
+$('study-open').addEventListener('click',startStudy);
+$('study-sketch').addEventListener('click',()=>{studyWanted=false;apply();});
+$('study-photo').addEventListener('click',async()=>{try{await study.load();studyWanted=true;apply();}catch(error){$('study-status').textContent='Не вдалося завантажити. Спробуйте знову.';}});
+if(new URLSearchParams(location.search).get('study')==='room3')startStudy();
