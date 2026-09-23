@@ -1,8 +1,9 @@
+import {furnish} from './furniture.js?v=furnish1';
 import * as T from 'three';
-import {createStudy} from './study.js?v=study1';
+import {createStudy} from './study.js?v=furnish1';
 import {OrbitControls} from './vendor/OrbitControls.js';
-import {makeModel,rooms,W,D,LEVEL} from './model.js?v=study1';
-import {planSVG} from './plans.js?v=study1';
+import {makeModel,rooms,W,D,LEVEL} from './model.js?v=furnish1';
+import {planSVG} from './plans.js?v=furnish1';
 
 const $=id=>document.getElementById(id),canvas=$('scene');
 const scene=new T.Scene();scene.background=new T.Color('#f6f4ef');const reducedMotion=matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -15,6 +16,7 @@ scene.add(new T.HemisphereLight('#fffaf0','#a4aaa5',1.7));
 const sun=new T.DirectionalLight('#fff3de',2.5);sun.position.set(-9,15,-10);sun.castShadow=true;sun.shadow.mapSize.set(2048,2048);sun.shadow.camera.left=-22;sun.shadow.camera.right=22;sun.shadow.camera.top=30;sun.shadow.camera.bottom=-20;sun.shadow.normalBias=.035;sun.shadow.bias=-.0002;sun.shadow.radius=4;scene.add(sun);
 const ground=new T.Mesh(new T.PlaneGeometry(500,500),new T.MeshStandardMaterial({color:'#f6f4ef',roughness:1}));ground.rotation.x=-Math.PI/2;ground.position.y=-.59;ground.receiveShadow=true;scene.add(ground);
 const model=makeModel(scene);let current='house',plan=false,selected=null,tween=null,inside=false;
+const furniture=furnish(model);
 const study=createStudy(model,scene,renderer,ground);let studyWanted=false;
 const title={house:'01 / ЗАГАЛЬНИЙ ВИГЛЯД',first:'02 / ПЕРШИЙ ПОВЕРХ',second:'03 / ДРУГИЙ ПОВЕРХ',site:'04 / ДІЛЯНКА'};
 const labelEntries=model.labels.map(l=>{const el=document.createElement('div');el.className=`label ${l.kind==='room'?'room-label':l.kind==='site'?'site-label':''}`;el.innerHTML=l.text;$('labels').append(el);return {...l,el};});
@@ -22,6 +24,7 @@ function fly(pos,target){if(reducedMotion){camera.position.set(...pos);controls.
 controls.addEventListener('start',()=>{tween=null;});
 function defaultCamera(){const mobile=innerWidth<700;if(current==='site')fly(mobile?[50,53,-67]:[32,35,-40],[-5,0,9]);else if(current==='first')fly(mobile?[-15,18,19]:[-10,13,14],[0,.4,1.1]);else if(current==='second')fly(mobile?[-15,20,19]:[-10,15,14],[0,3.0,1.1]);else fly(mobile?[-24,10,15]:[-17,7,11],[0,2.6,1.05]);}
 function apply(){
+ furniture.setVisible($('furniture').checked);
  const floorMode=current==='first'||current==='second';
  controls.enabled=!inside&&!plan;controls.enableZoom=true;camera.fov=inside?70:37;camera.updateProjectionMatrix();
  model.groups.first.visible=inside||current!=='second';model.groups.second.visible=inside||current!=='first';model.groups.roof.visible=inside||(!floorMode&&$('roof').checked);
@@ -54,7 +57,7 @@ function focusRoom(id){
  const r=rooms.find(r=>r.id===id);if(!r)return;
  setView(r.floor===1?'first':'second');selected=id;enterInside();canvas.focus({preventScroll:true});
  // Eye-level viewpoints in clear floor space, away from walls and the upper floor opening.
- const views={1:[1.71,4.30,1.71,1.1],2:[5.90,2.67,3.70,2.67],3:[4.40,2.725,6.65,2.725],4:[1.3,1.20,4.05,2.12],5:[1.3,4.25,4.05,3.38],6:[5.9,6.415,3.3,6.415],7:[2.65,6.05,1.7,7.3]};
+ const views={1:[1.71,4.30,1.71,1.1],2:[5.35,3.40,3.70,2.70],3:[4.40,2.725,6.65,2.725],4:[3.15,1.40,1.00,1.40],5:[3.15,4.00,1.00,4.00],6:[5.9,6.415,3.3,6.415],7:[2.65,6.05,1.7,7.3]};
  const [x,z,tx,tz]=views[id],y=(r.floor===2?LEVEL:0)+1.60;
  fly([W/2-x,y,z-D/2],[W/2-tx,id===2?1.15:y,tz-D/2]);
  $('room-info').hidden=false;$('room-info').innerHTML=`<b>${r.extension?r.name:r.id+' · '+r.name+' · '+r.area+' м²'}</b>${r.size}<br><small>Камера всередині · висота погляду 1,60 м</small>`;
@@ -87,7 +90,7 @@ $('walk-forward').addEventListener('click',()=>moveInside(.35));$('walk-back').a
 $('walk').addEventListener('change',()=>{if($('walk').checked){tween=null;enterInside();controls.target.copy(camera.position).add(camera.getWorldDirection(new T.Vector3()));}else{inside=false;selected=null;$('room-info').hidden=true;apply();defaultCamera();}});
 
 document.querySelectorAll('.view').forEach(b=>b.addEventListener('click',()=>setView(b.dataset.view)));
-['roof','dimensions','cut','spin'].forEach(id=>$(id).addEventListener('change',()=>{if(id==='cut'&&$('cut').checked){inside=false;selected=null;$('room-info').hidden=true;defaultCamera();}if(id==='cut'&&$('cut').checked&&current==='house'){setView('first');return;}apply();}));
+['roof','dimensions','cut','spin','furniture'].forEach(id=>$(id).addEventListener('change',()=>{if(id==='cut'&&$('cut').checked){inside=false;selected=null;$('room-info').hidden=true;defaultCamera();}if(id==='cut'&&$('cut').checked&&current==='house'){setView('first');return;}apply();}));
 $('ceiling').addEventListener('change',()=>{const enabled=$('ceiling').checked;if(enabled){if(current!=='second')setView('second');$('ceiling').checked=true;selected=null;enterInside();fly([-2.02,4.0,2.18],[-2.02,4.5,-1.65]);}else{inside=false;apply();defaultCamera();}});
 $('reset').addEventListener('click',()=>{inside=false;selected=null;$('room-info').hidden=true;$('spin').checked=false;$('ceiling').checked=false;$('cut').checked=current==='first'||current==='second';apply();defaultCamera();});
 $('top').addEventListener('click',()=>{inside=false;selected=null;$('room-info').hidden=true;$('ceiling').checked=false;$('cut').checked=current==='first'||current==='second';apply();const site=current==='site',y=current==='second'?LEVEL:0;fly(site?[-5,49,9.01]:[0,y+22,-.001],site?[-5,0,9]:[0,y,0]);});
@@ -98,7 +101,7 @@ function resize(){const rect=$('viewport').getBoundingClientRect();renderer.setS
 new ResizeObserver(resize).observe($('viewport'));
 function animate(now){requestAnimationFrame(animate);if(tween){const t=Math.min((now-tween.start)/750,1),e=1-Math.pow(1-t,3);camera.position.lerpVectors(tween.from,tween.to,e);controls.target.lerpVectors(tween.fromTarget,tween.toTarget,e);if(t===1)tween=null;}if(inside)camera.lookAt(controls.target);else controls.update();renderer.render(scene,camera);
  const width=canvas.clientWidth,height=canvas.clientHeight;
- for(const l of labelEntries){const show=!plan&&((l.kind==='dimension'&&$('dimensions').checked)||(l.kind==='site-dim'&&$('dimensions').checked&&current==='site')||(l.kind==='site'&&current==='site')||(l.kind==='room'&&$('cut').checked&&((current==='first'&&l.floor===1)||(current==='second'&&l.floor===2))));l.el.hidden=!show;if(show){const p=l.point.clone().project(camera);l.el.hidden=p.z>1||p.z< -1||Math.abs(p.x)>1||Math.abs(p.y)>1;l.el.style.left=`${(p.x*.5+.5)*width}px`;l.el.style.top=`${(-p.y*.5+.5)*height}px`;}}
+ for(const l of labelEntries){const show=!plan&&((l.kind==='dimension'&&$('dimensions').checked)||(l.kind==='site-dim'&&$('dimensions').checked&&current==='site')||(l.kind==='site'&&current==='site')||(l.kind==='room'&&!$('furniture').checked&&$('cut').checked&&((current==='first'&&l.floor===1)||(current==='second'&&l.floor===2))));l.el.hidden=!show;if(show){const p=l.point.clone().project(camera);l.el.hidden=p.z>1||p.z< -1||Math.abs(p.x)>1||Math.abs(p.y)>1;l.el.style.left=`${(p.x*.5+.5)*width}px`;l.el.style.top=`${(-p.y*.5+.5)*height}px`;}}
 }
 apply();resize();defaultCamera();requestAnimationFrame(animate);$('loading').hidden=true;if(innerWidth<700)$('hint').textContent='Один палець — обертання · Два — масштаб';
 
@@ -112,3 +115,5 @@ $('study-open').addEventListener('click',startStudy);
 $('study-sketch').addEventListener('click',()=>{studyWanted=false;apply();});
 $('study-photo').addEventListener('click',async()=>{try{await study.load();studyWanted=true;apply();}catch(error){$('study-status').textContent='Не вдалося завантажити. Спробуйте знову.';}});
 if(new URLSearchParams(location.search).get('study')==='room3')startStudy();
+
+if(new URLSearchParams(location.search).has('furnished'))setView('second');

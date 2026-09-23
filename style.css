@@ -8,3 +8,5 @@
 #viewport:has(#walk-controls:not([hidden])) #hint{background:#fffefbe8;color:#514d46;padding:4px 7px;border-radius:2px}
 
 #study-section{border:1px solid #ddd5c5;padding:12px;background:#faf7ef}#study-open{width:100%;font-size:11px;text-align:left}#study-compare{display:flex;gap:5px;margin-top:8px}#study-compare button{flex:1;font-size:10px;padding:8px 5px}#study-status{font-size:10px;color:#746b5b;margin:9px 0 0;line-height:1.5}@media(max-width:700px){#study-section{grid-column:1/3;padding:7px}#study-status{margin-top:5px}#study-compare{margin-top:5px}}
+
+.furnishing-note{padding:12px;background:#eee9dc;border-left:3px solid #737d62;font-size:11px}.furnishing-note p{margin:6px 0 0;color:#716956;font-size:10px}@media(max-width:700px){.furnishing-note{grid-column:1/3}}

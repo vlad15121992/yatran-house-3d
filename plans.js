@@ -14,14 +14,14 @@ export function planSVG(mode){
  if(mode==='second'){
  body=outer.replace('y="25" width="640" height="495"','y="23.5" width="640" height="498"')+wall(405,23.5,23,498)+wall(25,259.5,380,26)+opening(404,152.5,25,80)+opening(404,309.5,25,80)+window(189.5,521.5,115,23.5)+window(138.5,0,115,23.5)+window(665,316.5,25,140)+window(665,97.5,25,140)+opening(565,-2,75,29);
  body+='<rect x="337" y="233.5" width="68" height="26" fill="#c2a375" stroke="#735c40" stroke-width="1.5"/><rect x="332" y="285.5" width="73" height="23" fill="#c2a375" stroke="#735c40" stroke-width="1.5"/>'+text(367,247,'68 × 26',9)+text(365,300,'73 × 23',9);
- body+=room(210,150,'5 · Кімната відпочинку','8,97')+room(210,400,'4 · Кімната відпочинку','8,97')+room(545,265,'3 · Кімната','10,6');
+ body+=room(210,150,'5 · Гостьова спальня','8,97')+room(210,400,'4 · Спальня','8,97')+room(545,265,'3 · Вітальня','10,6');
  body+=`<rect x="428" y="25" width="103" height="68" fill="#dfdace" stroke="#393b37" stroke-dasharray="7 4"/>`+text(475,56,'Отвір',11)+text(475,77,'103 × 68 см',10);
  body+=text(210,213,'3,80 × 2,36 м',13)+text(210,236,'h = 2,35–3,10 м',12)+text(210,467,'3,80 × 2,36 м',13)+text(210,491,'h = 2,35–3,10 м',12)+text(550,339,'h = 2,40 м',13);
  }else{
  body=outer+wall(317,25,33,495)+wall(466,348,20,172)+wall(466,338,199,20)+opening(523,336,90,24)+opening(50,518,243,29)+opening(508,518,126,29)+opening(663,383,29,110)+window(365,520,88,25)+window(665,141,25,110);
  body+='<rect x="350" y="221" width="65" height="114" fill="#b2a190" stroke="#605247" stroke-width="2"/><rect x="350" y="256" width="46" height="44" fill="none" stroke="#605247" stroke-dasharray="4 3"/><rect x="407" y="217" width="8" height="4" fill="#171b1d"/><rect x="407" y="335" width="8" height="4" fill="#171b1d"/>'+text(382.5,275,'Камін',11)+text(382.5,291,'114 × 65',9);
  body+=opening(555,-2,80,29)+text(592,48,'Прохід ≈ 80 см',11);
- body+=room(172,267,'1 · Гараж','14,5')+room(510,229,'2 · Кухня','11,6');body+=text(172,339,'2,92 × 4,95 м',13)+text(172,362,'h = 2,15 м',13)+text(516,281,'h = 2,20 м',13)+text(570,439,'Вхід',15);
+ body+=room(172,267,'1 · Гараж','14,5')+room(510,229,'2 · Камінна','11,6');body+=text(172,339,'2,92 × 4,95 м',13)+text(172,362,'h = 2,15 м',13)+text(516,281,'h = 2,20 м',13)+text(570,439,'Вхід',15);
  body+=`<rect x="428" y="25" width="103" height="68" fill="none" stroke="#8b8172" stroke-dasharray="5 4"/>`+text(475,65,'Отвір у стелі',10);
 
  }
