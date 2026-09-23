@@ -1,12 +1,13 @@
 import * as T from 'three';
 import {pine,masonryUV} from './masonry.js?v=fireplace1';
-import {W,D,EXT,TERRACE} from './model.js?v=blackwood1';
+import {W,D,EXT,TERRACE} from './model.js?v=oakstairs1';
 
 // Concept only: grade, footing, timber sections and anchorage need site verification.
 export const ACCESS={ground:-.27,top:TERRACE,risers:20,going:.27,width:1.0,guard:1.10,maxGap:.075,landing:1.20};
 export function terraceAccess(scene){
  const group=new T.Group();group.scale.x=-1;scene.add(group);
  const wood=pine(.14,null,{pale:true}),metal=new T.MeshStandardMaterial({color:'#292e2b',roughness:.7}),concrete=new T.MeshStandardMaterial({color:'#a6a297',roughness:1});
+ wood.color.set('#91613b');
  let reverseFlight=false;const reflectZ=z=>2*(D+EXT-.10)-1.20-z;
  const B=(x,y,z,w,h,d,m=wood)=>{if(reverseFlight)z=reflectZ(z);const o=new T.Mesh(new T.BoxGeometry(w,h,d),m);o.position.set(x-W/2,y,z-D/2);if(m.userData.tile)masonryUV(o);o.castShadow=o.receiveShadow=true;group.add(o);return o;};
  const beam=(a,b,w,d,m=wood)=>{const av=new T.Vector3(...a),bv=new T.Vector3(...b),v=bv.clone().sub(av),mid=av.clone().add(bv).multiplyScalar(.5);const o=B(mid.x,mid.y,mid.z,w,v.length(),d,m);if(reverseFlight)v.z=-v.z;o.quaternion.setFromUnitVectors(new T.Vector3(0,1,0),v.normalize());return o;};

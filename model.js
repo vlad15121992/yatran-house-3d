@@ -198,7 +198,20 @@ export function makeModel(scene){
  wallRun(groups.second,'x',D/2,.25,.25+UPPER_PARTITION.roomLength,LEVEL,2.4,roomDividerThickness,[],lining);
  for(const [i,z] of [UPPER_END_WALL/2,D-UPPER_END_WALL/2].entries()){const w=ROOM_WINDOWS[i];window(groups.second,'x',z,w.a,w.b,LEVEL,w.low,w.high);}
  // Upper doorway faces the terrace. Existing house floor datum remains provisional.
- // First-floor stairs removed at owner request. Existing upper opening remains.
+ // Steep ladder stair fitted to the EXISTING 1.03 x .68 hatch, without slab changes.
+ // Visual proposal: 75 degrees, 12 rises; verify head/body clearance on site.
+ const ladderWood=pine(.14,clip,{pale:true});ladderWood.color.set('#91613b');
+ const ladderTop=LEVEL+.024,ladderRun=.70,ladderX=HATCH.x+HATCH.width-.20,ladderZ=HATCH.z+HATCH.depth/2;
+ const ladderBeam=(g,a,b,w,d)=>{const av=new T.Vector3(...a),bv=new T.Vector3(...b),v=bv.clone().sub(av),mid=av.clone().add(bv).multiplyScalar(.5);const m=houseBox(g,mid.x,mid.y,mid.z,w,v.length(),d,ladderWood);m.quaternion.setFromUnitVectors(new T.Vector3(0,1,0),v.normalize());return m;};
+ for(let i=1;i<12;i++){const y=ladderTop*i/12,x=ladderX-ladderRun*(1-i/12);houseBox(groups.first,x,y-.02,ladderZ,.23,.04,.56,ladderWood);}
+ for(const sign of [-1,1]){
+  const z=ladderZ+sign*.30;
+  ladderBeam(groups.first,[ladderX-ladderRun,0,z],[ladderX,ladderTop,z],.14,.04);
+  // Continuous grasp rails within the hatch width; vertical extensions above landing.
+  ladderBeam(groups.first,[ladderX-ladderRun-.14,.70,z],[ladderX-.14,ladderTop+.70,z],.035,.035);
+  for(const t of [.15,.60,.94]){const x=ladderX-ladderRun*(1-t),y=ladderTop*t;ladderBeam(groups.first,[x,y,z],[x-.14,y+.70,z],.035,.035);}
+ }
+
  // Photo shows gable at the 5.45 m end: ridge runs along the 6.90 m axis.
  // Both small rooms: measured 235 cm at the eave and 310 cm at the divider, above finished boards.
  const ridgeZ=D/2,roofY=5.0,ridge=CEILING_RIDGE+.15;
